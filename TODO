@@ -1,0 +1,3 @@
+In extract_smt.v
+ the tactic "extract_smt_forbidden" is undoubtedly incomplete.
+  We should add other forbidden terms to it.
