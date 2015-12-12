@@ -8,8 +8,7 @@ let v1 = (store v0 j temp1) in
 |)
 
 (set-info :smt-lib-version 2.0)
-(set-info :category "crafted")
-(set-info :status sat)
+(set-info :status unsat)
 (declare-fun a () (Array Int Int))
 (declare-fun i () Int)
 (declare-fun j () Int)
