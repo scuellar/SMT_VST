@@ -1,20 +1,19 @@
 #include <stdio.h>
 
 
-int* swap(int a[], int i, int j){
-  int temp;
+void swap(int a[], int i, int j){
+  int t1, t2;
 
-  temp = a[i];
-  a[i] = a[j];
-  a[j] = temp;
-
-  return a;  
-
+  t1 = a[i];
+  t2 = a[j];
+  a[i] = t2;
+  a[j] = t1;
 }
 
-int a[4] = {1,2,3,4};
+int four[4] = {1,2,3,4};
 
 int main () {
-  int* b = swap(a,1,2);
+  swap(four,1,2);
   return 0;
 }
+
