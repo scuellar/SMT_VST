@@ -38,6 +38,7 @@ encoding frst znth conclusion of body_swap in verif_swap
 
 
 
+
 (assert (let ((?saj  (select a j)))
         (let ((?lspp (store a i ?saj))
 	      (?sai (select a i)))
@@ -51,8 +52,9 @@ encoding frst znth conclusion of body_swap in verif_swap
 		    (and (=> (not (= ?saj 0)) (and (<= 0 j) (< j len_a)))
 		    (and (=> (not (= ?saj 0)) (and (<= 0 i) (< i len_a)))
 		    (and (=> (not (= ?ls 0)) (and (<= 0 i) (< i ?len_lsp)))
-		    (and (=> (not (= ?rs 0)) (and (<= 0 j) (< j len_a))))))))))))))
-	     
+		    (and (=> (not (= ?rs 0)) (and (<= 0 j) (< j len_a)))
+		     (and (and (<= 0 i) (< i len_a))
+		     (and (<= 0 j) (< j ?len_lspp))))))))))))))
 	     
 (check-sat)
 (exit)
