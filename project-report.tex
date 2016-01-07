@@ -1,0 +1,69 @@
+\documentclass[10pt]{article}
+
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{comment}
+\title{COS 597B: Final Report\\
+\emph{Towards SMT in VST}
+
+\author{\emph{Santiago Cuellar, Olivier Savary B\'{e}langer}} 
+
+\begin{document}
+\maketitle
+
+
+%start
+\section{Introduction}
+
+\section{Context}
+% VST
+
+% SMT COQ
+
+% QF_AX, QF_AULIA and their support (and proof generation)
+
+\section{Overview of our Solution}
+
+
+
+%dev
+
+\section{Encoding Lists as Arrays}
+
+% difference between list and QF_AX
+
+% encoding of nth
+
+% encoding of upd
+
+% encoding of append
+
+\section{Reflecting Back on Lists}
+% explanation of proof needed for the big picture to work
+While we strive for correctness of encoding, differences between lists
+and the infinite arrays as manipulated by \emph{QF\_AX} makes such encoding difficult to achieve in general. 
+Fortunately, we can instead using a sound, but incomplete encoding, such that the validity 
+of the encoding implies the validity of the original formula, but not the other way around.
+In other word, some valid goals may result in invalid encodings, but valid encoding only arrises from valid goals.
+
+% proof of soundness of encoding
+%% QF_AX as Array GDT + Axioms
+
+%% nth as select
+
+%% upd_nth as store
+
+%% ++ as branch-and-select
+
+
+%end
+\section{Future Work}
+% 4 pages just there
+
+% VST <-> SMTLIB
+
+%SMTlib <-> CVC4
+
+\section{Conclusion}
+
+\end{document}
