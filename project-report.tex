@@ -33,7 +33,9 @@ The goal of the project is to investigate using an SMT solver to discharge oblig
 
 \section{Overview of our Solution}
 
+In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \lstinline|nth| and \lstinline|upd_nth| can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \empf{QF_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
 
+Targeting \emph{QF_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTcoq and would require significant extension to SMTlib and CVC4 (which supports the theory but doesn't generate proof witness for it). 
 
 %dev
 
