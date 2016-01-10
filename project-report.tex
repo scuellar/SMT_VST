@@ -42,6 +42,19 @@ Targeting \emph{QF_AUFLIA} is a pragmatic choice. While the theory of inductive 
 \section{Encoding Lists as Arrays}
 
 % difference between list and QF_AX
+In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
+\begin{lstlisting}
+inductive list A : Set :=
+ | nil : list A
+ | cons : A -> list A -> list A.
+\end{lstlisting}
+
+In VST, C arrays are reasoned about propositionally as list, using total operation such as \lstinline|upd_Znth| and \lstinline|nthZ|, using mathematical integers as index and a default value as argument to \lstinline|nthZ| returned when accessing the array out of bound. 
+
+As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
+
+The basis of our encoding is that the \emph{QF\_AX} array \lstinline|a| representing Coq list \lstinline|l| will be constrained to contain the same elements as \lstinline|l| from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
+$$ a_i = nthZ l i d$$
 
 % encoding of nth
 
