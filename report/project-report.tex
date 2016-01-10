@@ -23,8 +23,9 @@ The goal of the project is to investigate using an SMT solver to discharge oblig
  \item identifing the theories needed for such development to be useful
  \item sketching a completed pipeline assuming minimal updates to relevant tools
  \item defining encoding of list-reasoning in the theory of arrays with uninterpreted functions (\emph{QF\_AUFLIA})
- \item proving the soundness of this encoding (TODO)
+ \item proving the soundness of this encoding
 \end{itemize}
+
 \section{Context}
 % VST
 \subsection{VST}
@@ -75,13 +76,27 @@ In VST, C arrays are reasoned about propositionally as list, using total operati
 As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
 The basis of our encoding is that the \emph{QF\_AX} array \lstinline|a| representing Coq list \lstinline|l| will be constrained to contain the same elements as \lstinline|l| from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
-$$ a_i = nthZ\ l\ i d$$
+$$ a_i = \textsf{nthZ}\ l\ i\ d$$
+
+Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the results of every list operation to a new variable. Then, each operation is encoded separately according a general, sound corresspondance to operations in the theory of arrays:
 
 % encoding of nth
+For every goal of the form $s = \textsf{nthZ}\ i\ ls d$, we add the following in the conclusion on the formula sent to the SMT solver:
+
+$$ (0 \leq j < \textsf{len}\ as) \to s = \textsf{select as j}\ \wedge$$
+$$\neg (0 \leq j < \textsf{len}\ as) \to s = d $$
+
+Where $as$ is an array corresponding to the list $ls$, and $len$ is an uninterpreted functions which may be constrained by hypothesis in the VST goal about $ls$'s boundaries.
+
 
 % encoding of upd
+$\textsf{upd\_Znth}$ is encoded almost directly by $AX$'s operation $\textsf{store}$. For every goal of the form $s = \textsf{upd\_Znth\ i\ e\ ls}$, we augment the formula with
+$$ as' = \textsf{store}\ as\ i\ e \wedge 0 \leq i \leq \textsf{len}\ as \to \textsf{len}\ as' = \textsf{len}\ as$$
+which encodes the update operation and the fact that updating within boundaries preserves the length of the list.
+
 
 % encoding of append
+
 
 \section{Reflecting Back on Lists}
 % explanation of proof needed for the big picture to work
