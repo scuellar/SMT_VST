@@ -30,6 +30,16 @@ The goal of the project is to investigate using an SMT solver to discharge oblig
 % SMT COQ
 
 % QF_AX, QF_AULIA and their support (and proof generation)
+\subsection{The SMT Theory of Arrays}
+The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \lstinline|select| of type \lstinline|array -> int -> el| and modified with function \lstinline|store| of type \lstinline|array -> int -> el -> array|. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
+\begin{enumerate}
+\item selecting the last store:
+$$ \forall a i, \textsf{select } (\textsf{store } a i e) i = e$$
+\item selecting from a previous store:
+$$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a j e) i = \textsf{select } a i$$
+\item and extensionality:
+$$ \forall a b, (\forall i, \textsf{select } a i = \textsf{select } b i) \to a = b$$
+\end{enumerate}
 
 \section{Overview of our Solution}
 
