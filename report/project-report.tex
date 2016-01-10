@@ -1,12 +1,13 @@
-\documentclass[10pt]{article}
-
+\documentclass[preprint]{sigplanconf}
 \usepackage{fullpage}
 \usepackage{listings}
 \usepackage{comment}
 \title{COS 597B: Final Report\\
 \emph{Towards SMT in VST}}
 
-\author{\emph{Santiago Cuellar, Olivier Savary B\'{e}langer}} 
+\authorinfo{Santiago Cuellar \and Olivier Savary B\'{e}langer}
+           {Princeton University}
+           {scuellar/olivierb@princeton.edu}
 
 \begin{document}
 \maketitle
@@ -26,20 +27,30 @@ The goal of the project is to investigate using an SMT solver to discharge oblig
 \end{itemize}
 \section{Context}
 % VST
+\subsection{VST}
 
 % SMT COQ
+\subsection{SMT\_COQ}
 
 % QF_AX, QF_AULIA and their support (and proof generation)
 \subsection{The SMT Theory of Arrays}
 The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \lstinline|select| of type \lstinline|array -> int -> el| and modified with function \lstinline|store| of type \lstinline|array -> int -> el -> array|. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
 \begin{enumerate}
 \item selecting the last store:
-$$ \forall a i, \textsf{select } (\textsf{store } a i e) i = e$$
+  $$ \forall a i, \textsf{select } (\textsf{store } a i e) i = e$$
+which states that selecting returns what was last stored at that location
+  
 \item selecting from a previous store:
-$$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a j e) i = \textsf{select } a i$$
+  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a j e) i = \textsf{select } a i$$
+  which means that storing an element has not effect on what can be selected at other indices.
+  
 \item and extensionality:
-$$ \forall a b, (\forall i, \textsf{select } a i = \textsf{select } b i) \to a = b$$
+  $$ \forall a b, (\forall i, \textsf{select } a i = \textsf{select } b i) \to a = b$$
+  which means that arrays which agrees on elements for every indices can be considered equal.
 \end{enumerate}
+
+The theory of arrays can be augmented with uninterpreted functions and linear arithmetic (\emph{QF\_AUFLIA}) and to allow a limited form of quantification (\emph{AUFLIA})
+
 
 \section{Overview of our Solution}
 
