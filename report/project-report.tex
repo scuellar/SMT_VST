@@ -78,7 +78,7 @@ As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are ass
 The basis of our encoding is that the \emph{QF\_AX} array \lstinline|a| representing Coq list \lstinline|l| will be constrained to contain the same elements as \lstinline|l| from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
 $$ a_i = \textsf{nthZ}\ l\ i\ d$$
 
-Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the results of every list operation to a new variable. Then, each operation is encoded separately according a general, sound corresspondance to operations in the theory of arrays:
+Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the result of every list operation to a new variable. Then, each operation is encoded according a general, sound correspondence to operations in the theory of arrays:
 
 % encoding of nth
 For every goal of the form $s = \textsf{nthZ}\ i\ ls d$, we add the following in the conclusion on the formula sent to the SMT solver:
@@ -96,6 +96,11 @@ which encodes the update operation and the fact that updating within boundaries 
 
 
 % encoding of append
+just like $\textsf{nthZ}$, $\textsf{append}$ is encoded using $\textsf{select}$. For every goal of the form $ls = ls_1 ++ ls_2$, we add the following constaints:
+$$(0 \leq j < \textsf{len}\ as1) \to \textsf{select}\ as1\ j = \textsf{select}\ as\ j \wedge $$
+$$(\textsf{len}\ as1 \leq j < \textsf{len}\ as1 + \textsf{len}\ as2) \to \textsf{select}\ as2\ j = \textsf{select}\ as\ (\textsf{len}\ as1 + j)$$
+Under this encoding, the result accessing the resulting array $as$ is equal to the first array $as1$ between $0$ and the length of the first list $ls_1$ and to the second array $as2$ between the length of the first list $ls_1$ and the length of the resulting list $ls$.
+
 
 
 \section{Reflecting Back on Lists}
