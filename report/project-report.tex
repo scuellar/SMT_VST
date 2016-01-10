@@ -4,7 +4,7 @@
 \usepackage{listings}
 \usepackage{comment}
 \title{COS 597B: Final Report\\
-\emph{Towards SMT in VST}
+\emph{Towards SMT in VST}}
 
 \author{\emph{Santiago Cuellar, Olivier Savary B\'{e}langer}} 
 
@@ -43,9 +43,9 @@ $$ \forall a b, (\forall i, \textsf{select } a i = \textsf{select } b i) \to a =
 
 \section{Overview of our Solution}
 
-In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \lstinline|nth| and \lstinline|upd_nth| can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \empf{QF_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
+In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \lstinline|nth| and \lstinline|upd_nth| can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \emph{QF\_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
 
-Targeting \emph{QF_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTcoq and would require significant extension to SMTlib and CVC4 (which supports the theory but doesn't generate proof witness for it). 
+Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTcoq and would require significant extension to SMTlib and CVC4 (which supports the theory but doesn't generate proof witness for it). 
 
 %dev
 
@@ -64,7 +64,7 @@ In VST, C arrays are reasoned about propositionally as list, using total operati
 As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
 The basis of our encoding is that the \emph{QF\_AX} array \lstinline|a| representing Coq list \lstinline|l| will be constrained to contain the same elements as \lstinline|l| from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
-$$ a_i = nthZ l i d$$
+$$ a_i = nthZ\ l\ i d$$
 
 % encoding of nth
 
