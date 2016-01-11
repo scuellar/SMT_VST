@@ -1,6 +1,9 @@
 \documentclass[onecolumn, preprint]{sigplanconf}
+\usepackage{multicol}
 \usepackage{listings}
 \usepackage{comment}
+\usepackage{graphicx}
+
 \title{COS 597B: Final Report\\
 \emph{Towards SMT in VST}}
 
@@ -43,18 +46,34 @@ It works by encoding a Coq goal as an SMT formula, which may be proven valid by 
 \subsection{The SMT Theory of Arrays}
 The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \lstinline|select| of type \lstinline|array -> int -> el| and modified with function \lstinline|store| of type \lstinline|array -> int -> el -> array|. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
 \begin{enumerate}
-\item selecting the last store:
-  $$ \forall a i, \textsf{select } (\textsf{store } a i e) i = e$$
+\item selecting from the last store:
+  \begin{multicols}{2}
+    
+  $$ \forall a i, \textsf{select } (\textsf{store } a\ i\ e)\ i = e$$
 which states that selecting returns what was last stored at that location
+ 
+\includegraphics[scale=0.5]{pictures/axiom1.png}
+
+  \end{multicols}
   
 \item selecting from a previous store:
-  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a j e) i = \textsf{select } a i$$
+  \begin{multicols}{2}
+  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a i$$
   which means that storing an element has not effect on what can be selected at other indices.
+
+  \includegraphics[scale=0.5]{pictures/axiom2.png}
+  \end{multicols}
   
 \item and extensionality:
-  $$ \forall a b, (\forall i, \textsf{select } a i = \textsf{select } b i) \to a = b$$
+  
+  \begin{multicols}{2}
+  $$ \forall a b, (\forall i, \textsf{select } a\ i = \textsf{select } b\ i) \to a = b$$
   which means that arrays which agrees on elements for every indices can be considered equal.
-\end{enumerate}
+
+  \includegraphics[scale=0.5]{pictures/axiom3.png}
+  \end{multicols}
+  \end{enumerate}
+  
 
 The theory of arrays can be augmented with uninterpreted functions and linear arithmetic (\emph{QF\_AUFLIA}) and to allow a limited form of quantification (\emph{AUFLIA})
 
@@ -63,9 +82,44 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 
 In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \lstinline|nth| and \lstinline|upd_nth| can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \emph{QF\_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
 
-Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTcoq and would require significant extension to SMTlib and CVC4 (which supports the theory but doesn't generate proof witness for it). 
+Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTcoq and would require significant extension to SMTlib and CVC4 (which supports the theory but does not generate proof witness for it). 
 
 %dev
+\subsection{A High-Level View of the Envisioned Machinery}
+The following graphics describes the different components and the steps that goes into automatically proving an SMT goal using an SMT solver. Doted line represents works done by external tools, where full lines are specific to this project. 
+
+\includegraphics[scale=0.5]{pictures/arch.png}
+
+
+
+\begin{enumerate}
+\item %1
+  A tactic provided by VST isolates the propositional portion of goals from separation-logic predicates.
+\item %2
+  The propositional goal is encoded into a Coq representation of a datatype which can be manipulated by SMT theories.
+  
+\item %3
+ SMTcoq reifies the encoded goal as an OCaml datatype representing an SMT query equivalent to the encoded goal
+  
+\item %4
+  SMTcoq generates an SMTlib from the OCaml reification of the goal, and send it to CVC4, an SMT solver
+  
+\item %5
+  CVC4 either find a counter example to the query, in which case either the goal is false or it falls into the incomplete portion of the encoding, or it returns UNSAT together with a proof witness of the decision
+  
+\item %6
+  Assuming an UNSAT decision (which asserts the validity of the initial goal), the proof witness is interpreted back in Coq 
+  
+  
+\item %7
+  The proof witness is verified by the certified SMT solver included in SMTcoq and the decision is reflected back in Coq as a proof of the encoded goal
+  
+\item %8
+  By soundness of encoding, we use the validity of the encoded goal to prove the validity of the initial goal
+
+  
+\end{enumerate}
+
 
 \subsection{Encoding Lists as Arrays}
 
@@ -120,6 +174,7 @@ In other word, some valid goals may result in invalid encodings, but valid encod
 % proof of soundness of encoding
 %% QF_AX as Array GDT + Axioms
 
+
 %% nth as select
 
 %% upd_nth as store
@@ -136,6 +191,14 @@ At the very least, we need CVC4 to generate witnesses for the theory of arrays a
 
 % supporting more list operations and potentially other datatypes
 In the meantime, we can extend our encodings with more lists operations, potentially using \emph{AUFLIA} rather than its quantifier-free fragment \emph{QF\_AUFLIA}.
+
 \section{Conclusion}
+Our project is meant to be taken as an investigation of the realisability of harnesting an SMT solver to provide automate software verification goals in an interactive theorem prover such as Coq. We conclude that while architecturally we know how to assemble an interface such as this one, the tools which are currently available are too limited for realistic usage.
+
+
+
+
+Even assuming \emph{SMT\_COQ}'s support for CVC4, and CVC4 proof generation for \emph{AUFLIA}, we doubt that our encoding of list goals as array will scale well to more list operations and goals about other inductive datatypes, and that it would be more practical than using the automation facilities already present in Coq. In a more distant future, we envision the support for the theory of inductive datatypes to be of high importance, as it would permit (and potentially generate automatically)  direct encoding of simple Coq datatypes, towards a seamless integration of SMT for VST.
+
 
 \end{document}
