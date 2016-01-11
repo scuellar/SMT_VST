@@ -126,6 +126,27 @@ Due to current limitation of SMTcoq, in CVC4 and to time constraint, the work de
   \item $8$ - proving the soundness of our encoding
 \end{itemize}
 
+\subsection{Example: Swap}
+The type of goals we aim at automatically discharging using an SMT solver is examplified by the goals VST generate when verifying a C program swapping two array elements.
+
+\begin{lstlisting}
+void swap(int a[], int i, int j){
+  int t1, t2;
+
+  t1 = a[i];
+  t2 = a[j];
+  a[i] = t2;
+  a[j] = t1;
+}
+\end{lstlisting}
+
+\lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. After executing, assuming no index-out-of-bound errors, \lstinline|a| will have its \lstinline|i|th element be the initial \lstinline|j|th element, and likewise for the \lstinline|j|th element, with the rest of \lstinline|a| being left unchanged.
+
+This can be verified using the VST framework...
+%TODO
+
+
+
 \subsection{Encoding Lists as Arrays}
 
 % difference between list and QF_AX
@@ -165,6 +186,7 @@ just like $\textsf{nthZ}$, $\textsf{append}$ is encoded using $\textsf{select}$.
 $$(0 \leq j < \textsf{len}\ as1) \to \textsf{select}\ as1\ j = \textsf{select}\ as\ j \wedge $$
 $$(\textsf{len}\ as1 \leq j < \textsf{len}\ as1 + \textsf{len}\ as2) \to \textsf{select}\ as2\ j = \textsf{select}\ as\ (\textsf{len}\ as1 + j)$$
 Under this encoding, the result accessing the resulting array $as$ is equal to the first array $as1$ between $0$ and the length of the first list $ls_1$ and to the second array $as2$ between the length of the first list $ls_1$ and the length of the resulting list $ls$.
+
 
 
 
