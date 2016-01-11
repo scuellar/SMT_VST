@@ -30,7 +30,47 @@ The goal of the project is to investigate using an SMT solver to discharge oblig
 
 This report is organized as follow: Section 2 provide backgrounds about the tools and theories used in this project. Section 3 provides an overview of the solution, concentrating on the design of the encoding for supported list operations. Section 4 sketches proof of soudness of the encoding. Finally, section 5 explores future works for our project and discuss of the different assumption made of tools used.
 
-\section{Context}
+\section{Motivating Example: Swap}
+
+We will use the simple C program \lstinline|swap| as a running example.
+
+\begin{lstlisting}
+void swap(int a[], int i, int j){
+  int t1, t2;
+
+  t1 = a[i];
+  t2 = a[j];
+  a[i] = t2;
+  a[j] = t1;
+}
+\end{lstlisting}
+
+\lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. After executing, assuming no index-out-of-bound errors, \lstinline|a| will have its \lstinline|i|th element be the initial \lstinline|j|th element, and likewise for the \lstinline|j|th element, with the rest of \lstinline|a| being left unchanged. We can write this specification as a hoare triple in VST:
+\begin{lstlisting}
+Definition swap_spec :=
+ DECLARE _swap
+  WITH a: val, sh: share, contents: list int, i : Z, j : Z, size: Z
+  PRE  [ _a OF (tptr tint), _i OF tint, _j OF tint  ]
+  PROP(writable_share sh; 0 <= i < size;  0 <= j < size; 0 <= size <= Int.max_signed)
+  LOCAL(temp _a a; temp _i (Vint (Int.repr i)); temp _j (Vint (Int.repr j)))
+  SEP (data_at sh (tarray tint size) (map Vint contents) a)
+  POST [ tvoid]
+   EX contents': list int,
+   PROP(Znth i contents' Int.zero = Znth j contents Int.zero;
+        Znth j contents' Int.zero = Znth i contents Int.zero)
+   LOCAL()
+   SEP (data_at sh (tarray tint size) (map Vint contents') a).
+\end{lstlisting}
+
+While proving that the C code for swap respect this specification using VST, we reach the following list-based side conditions:
+
+...
+
+All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \lstinline|Znth| and \lstinline|upd_Znth|. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
+
+
+
+\section{Background}
 % VST
 \subsection{VST}
 
@@ -76,6 +116,7 @@ which states that selecting returns what was last stored at that location
   
 
 The theory of arrays can be augmented with uninterpreted functions and linear arithmetic (\emph{QF\_AUFLIA}) and to allow a limited form of quantification (\emph{AUFLIA})
+
 
 
 \section{Overview of our Solution}
@@ -126,24 +167,9 @@ Due to current limitation of SMTcoq, in CVC4 and to time constraint, the work de
   \item $8$ - proving the soundness of our encoding
 \end{itemize}
 
-\subsection{Example: Swap}
-The type of goals we aim at automatically discharging using an SMT solver is examplified by the goals VST generate when verifying a C program swapping two array elements.
 
-\begin{lstlisting}
-void swap(int a[], int i, int j){
-  int t1, t2;
 
-  t1 = a[i];
-  t2 = a[j];
-  a[i] = t2;
-  a[j] = t1;
-}
-\end{lstlisting}
 
-\lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. After executing, assuming no index-out-of-bound errors, \lstinline|a| will have its \lstinline|i|th element be the initial \lstinline|j|th element, and likewise for the \lstinline|j|th element, with the rest of \lstinline|a| being left unchanged.
-
-This can be verified using the VST framework...
-%TODO
 
 
 
