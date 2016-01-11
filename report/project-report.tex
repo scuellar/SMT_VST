@@ -26,12 +26,19 @@ The goal of the project is to investigate using an SMT solver to discharge oblig
  \item proving the soundness of this encoding
 \end{itemize}
 
+This report is organized as follow: Section 2 provide backgrounds about the tools and theories used in this project. Section 3 provides an overview of the solution, concentrating on the design of the encoding for supported list operations. Section 4 sketches proof of soudness of the encoding. Finally, section 5 explores future works for our project and discuss of the different assumption made of tools used.
+
 \section{Context}
 % VST
 \subsection{VST}
 
+
 % SMT COQ
 \subsection{SMT\_COQ}
+\emph{SMT\_COQ} is a certified SMT interface for the Coq interactive theorem prover developped by Dr. Chantal Keller. It is built around a simple SMT solver proven-correct in Coq.
+It works by encoding a Coq goal as an SMT formula, which may be proven valid by an external SMT solver. The SMT solver then generates a witness of the validity (for SAT, this witness would be the unsatisfiable core), which is validated by the simple SMT solver in Coq. Finaly, the proof of correctness of this certified solver allows the reflection of the SMT decision in Coq, automatically solving the goal.
+
+\emph{SMT\_COQ} currently only support the theory of uninterpreted functions \emph{QF\_UF} and the theory of linear arithmetic \emph{QF\_LIA}, and interfaces with the outmoded SMT solver VeriT, but it is planned to support the theory of arrays \emph{QF\_AX} and interface with CVC4, a state-of-the-art SMT solver.
 
 % QF_AX, QF_AULIA and their support (and proof generation)
 \subsection{The SMT Theory of Arrays}
@@ -61,7 +68,7 @@ Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive
 
 %dev
 
-\section{Encoding Lists as Arrays}
+\subsection{Encoding Lists as Arrays}
 
 % difference between list and QF_AX
 In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
@@ -103,7 +110,7 @@ Under this encoding, the result accessing the resulting array $as$ is equal to t
 
 
 
-\section{Reflecting Back on Lists}
+\section{Soundness of the Solution, or Reflecting Back on Lists}
 % explanation of proof needed for the big picture to work
 While we strive for correctness of encoding, differences between lists
 and the infinite arrays as manipulated by \emph{QF\_AX} makes such encoding difficult to achieve in general. 
