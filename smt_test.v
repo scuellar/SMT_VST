@@ -85,29 +85,24 @@ Fixpoint upd_nth {A:Type} (i:nat) (l:list A) (a:A): list A :=
     | _ => l
   end.
 
-Theorem enc_upd:
-  forall A i ss (a: array A) L ss', 
-                 ss' = store ss i a ->
-                 list_of_array L ss' = upd_nth i (list_of_array L ss) a.
-Proof.
-  intros. unfold list_of_array.
-  Lemma rev_upd_nth:
+
+Lemma rev_upd_nth:
   forall (A : Type) (l : list A) (x: A) (n : nat),
     (n < length l)%nat -> upd_nth n (rev l) x = rev (upd_nth (length l - S n) l x).
-    Proof.
-      intros. induction l.
-      - contradict H; simpl; omega.
-      - simpl.
-        destruct (le_gt_dec (length l) n). simpl in H.
-        assert (HH: n = length l) by omega; rewrite HH.
-        rewrite minus_diag. simpl.
-        Lemma upd_nth_app1: forall A l l' (x:A) n,
-                             (length l <= n)%nat ->
-                             upd_nth n (l ++ l') x = l ++ upd_nth (n - length l) l' x.
-          intros until x. induction l; intros; auto. 
-          simpl. simpl in H. rewrite <- minus_n_O; auto.
-          simpl.
-          destruct n. contradict H; simpl; omega.
+Proof.
+  intros. induction l.
+  - contradict H; simpl; omega.
+  - simpl.
+    destruct (le_gt_dec (length l) n). simpl in H.
+    assert (HH: n = length l) by omega; rewrite HH.
+    rewrite minus_diag. simpl.
+    Lemma upd_nth_app1: forall A l l' (x:A) n,
+                          (length l <= n)%nat ->
+                          upd_nth n (l ++ l') x = l ++ upd_nth (n - length l) l' x.
+      intros until x. induction l; intros; auto. 
+      simpl. simpl in H. rewrite <- minus_n_O; auto.
+      simpl.
+      destruct n. contradict H; simpl; omega.
           simpl. f_equal.
           apply IHl. simpl in H; omega.
         Qed.
@@ -137,7 +132,77 @@ Proof.
 
         rewrite rev_length; auto.
     Qed.
-       
+
+Theorem enc_upd_ge:
+  forall A i ss (a: array A) L ss',
+    (L <= i)%nat ->
+    ss' = store ss i a ->
+    list_of_array L ss' = upd_nth i (list_of_array L ss) a.
+Proof.
+  intros. unfold list_of_array.
+  induction L. destruct i; reflexivity.
+      simpl. assert (L <= i)%nat by omega.
+      specialize (IHL H1).
+      rewrite H0 in *. rewrite QFAX2; try omega.
+      rewrite upd_nth_app1.
+      f_equal; auto.
+      f_equal. admit.
+      rewrite rev_length, length_la''.
+      destruct (i-L)%nat eqn:eq. contradict H; omega.
+      simpl. destruct n; reflexivity.
+      rewrite rev_length, length_la''; assumption.
+Qed.
+
+Theorem enc_upd_lt:
+  forall A i ss (a: array A) L ss',
+    ( i < L)%nat ->
+    ss' = store ss i a ->
+    list_of_array L ss' = upd_nth i (list_of_array L ss) a.
+Proof.
+  intros. unfold list_of_array.
+  rewrite rev_upd_nth; [|rewrite length_la''; auto].
+  f_equal.
+  rewrite length_la''.
+  rewrite H0.
+  induction L.
+  reflexivity.
+  destruct (le_gt_dec L i).
+  simpl.
+  assert (HH: L = i) by omega. rewrite HH.
+  rewrite minus_diag. simpl. f_equal.
+  apply QFAX1.
+  Theorem blah:
+    forall A i ss (a: array A) j,
+      (j <= i)%nat ->
+      list_of_array'' j (store ss i a) = list_of_array'' j ss.
+  Proof.
+    intros. induction j.
+    reflexivity.
+    simpl. f_equal. eapply QFAX2; omega.
+    apply IHj. omega.
+  Qed.
+  apply blah; auto.
+  {
+    simpl.
+    destruct (L-i)%nat eqn:Eq. contradict g; omega.
+    simpl. f_equal.
+    apply QFAX2; omega.
+    rewrite IHL; auto.
+    replace (L - S i)%nat with n by omega. reflexivity.
+  }
+  Qed.
+
+Theorem enc_upd:
+  forall A i ss (a: array A) L ss',
+    ss' = store ss i a ->
+    list_of_array L ss' = upd_nth i (list_of_array L ss) a.
+Proof.
+  intros. destruct (le_gt_dec L i); [apply enc_upd_ge | apply enc_upd_lt]; auto.
+Qed.
+
+
+    (* I'll think about this later... *)
+    (*
 Theorem enc_app: forall A  ls1 ls2 ls3 ss1 ss2 ss3,
                    (forall i, (0 <= i < length ls1)%nat -> select A ss1 i = select A ss3 i) ->
                    (forall i, (length ls1 <= i < (length ls1 + length ls2))%nat -> select A ss2 i = select A ss3 (i + length ls1)) ->
@@ -159,7 +224,7 @@ Proof.
                      reflexivity.
                    }
                    rewrite H5. rewrite H8. reflexivity.
-Qed.
+Qed.*)
 
 End PROOF.
 
