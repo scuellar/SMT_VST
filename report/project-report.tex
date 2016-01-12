@@ -64,10 +64,9 @@ Definition swap_spec :=
    SEP (data_at sh (tarray tint size) (map Vint contents') a).
 \end{lstlisting}
 
-While proving that the C code for swap respect this specification using VST, we reach the following list-based side conditions:
-\begin{enumerate}
-  \item TODO
-\end{enumerate}
+While proving that the C code for swap respect this specification using VST, the following list-based side conditions are generated:
+
+TODO
 
 
 All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \lstinline|Znth| and \lstinline|upd_Znth|. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
@@ -299,7 +298,8 @@ Theorem enc_nth: forall A  (L j:nat) (ar:array A) (ls:list A) (s:A)  (d:A),
 % 4 pages just there
 In the near future, we expect most of the current limitations to our work due to external tools to be lifted.
 
-At the very least, we need CVC4 to generate witnesses for the theory of arrays and SMTCoq to support the theory of arrays and to interface with CVC4. We have the confirmation from the developer of CVC4 and SMTCoq that these are being worked on. In the future, supports for more theories, especially quantified arrays and inductive datatypes, would permit for more direct encodings and, in the case of the latter, automatic generation of encoding together with correctness proof for the datatype and simple functions.
+In order for the pipeline described in the previous sections to be completed, we need CVC4 to generate witnesses for the theory of arrays and SMTcoq to support the theory of arrays and to interface with CVC4. We have the confirmation from the developer of CVC4 and SMTcoq that these are being worked on. In the future, supports for more theories, especially quantified arrays and inductive datatypes, would permit for more direct encodings and, in the case of the latter, automatic generation of encoding together with correctness proof for the datatype and simple functions.
+
 
 % supporting more list operations and potentially other datatypes
 In the meantime, we can extend our encodings with more lists operations, potentially using \emph{AUFLIA} rather than its quantifier-free fragment \emph{QF\_AUFLIA}.
