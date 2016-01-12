@@ -1,5 +1,5 @@
-Add LoadPath "../../CompCert-2.5" as compcert.
-Add LoadPath "../".
+Add LoadPath "../CompCert-2.5" as compcert.
+Add LoadPath "../VST".
 Require Import compcert.lib.Coqlib.
 Require Import msl.Coqlib2.
 Require Import List.
@@ -137,28 +137,27 @@ Proof.
 
         rewrite rev_length; auto.
     Qed.
-       
-Theorem enc_app: forall A  ls1 ls2 ls3 ss1 ss2 ss3,
-                   (forall i, (0 <= i < length ls1)%nat -> select A ss1 i = select A ss3 i) ->
-                   (forall i, (length ls1 <= i < (length ls1 + length ls2))%nat -> select A ss2 i = select A ss3 (i + length ls1)) ->
-                   list_of_stream A (length ls1) ss1 = ls1 ->
-                   list_of_stream A (length ls2) ss2 = ls2 ->
-                   list_of_stream A (length ls1 + length ls2) ss3 = ls3 ->
-                   ls1 ++ ls2 = ls3.
+    admit.
+Qed.
+
+
+Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
+                   (forall i, (0 <= i < L1)%nat -> select  ss1 i = select  ss3 i) ->
+                   (forall i, (0 <= i < L2)%nat -> select ss2 i = select ss3 (i + L1)) ->
+                   (list_of_array L1 ss1) ++ (list_of_array L2 ss2)  = list_of_array (L1+L2) ss3.
 Proof.
-  induction ls1; intros.
-  - simpl; simpl in *. admit.
-  - simpl; simpl in *. inversion H3. inversion H1. assert (hd ss1 = hd ss3). erewrite <- stream_cons. symmetry. erewrite <- stream_cons. symmetry. rewrite <- stream_exp'. rewrite <- stream_exp'. apply H. omega. assert (list_of_stream A (length ls1) (tl ss1) ++ ls2 =
-   list_of_stream A
-        (length (list_of_stream A (length ls1) (tl ss1)) + length ls2)
-        (tl ss3)). { rewrite H7. eapply IHls1 with (ss1 := tl ss1) (ss2 := ss2) (ss3 := tl ss3).
-                      admit.
-                     admit.
-                     assumption.
-                     assumption.
-                     reflexivity.
-                   }
-                   rewrite H5. rewrite H8. reflexivity.
+  induction L2; intros.
+  - unfold list_of_array; simpl. rewrite app_nil_r. assert (list_of_array'' L1 ss1 = list_of_array'' L1 ss3). revert H. clear H0. revert ss1. revert ss3. induction L1; intros.
+    + auto.
+    + simpl. unfold list_of_array in IHL1. rewrite IHL1 with (ss3 := ss3) . rewrite H. reflexivity. omega. intros. apply H. omega.
+    + rewrite H1. rewrite plus_0_r. reflexivity.
+  - unfold list_of_array. replace (L1 + S L2)%nat with (S L1 + L2)%nat by omega.  simpl.
+    assert (select ss2 L2 =  select ss3 (L1+L2)). rewrite plus_comm. apply H0. omega.
+    assert (list_of_array L1 ss1 ++ list_of_array L2 ss2 =
+                                                                                                 list_of_array (L1 + L2) ss3). apply IHL2.
+    + assumption.
+    + intros. apply H0. omega.
+    + unfold list_of_array in H2. rewrite <- H2.  rewrite H1. apply app_assoc.
 Qed.
 
 End PROOF.

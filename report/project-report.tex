@@ -85,7 +85,7 @@ All these conditions can be proven with simple but tedious proofs based solely o
 \emph{SMT\_COQ} is a certified SMT interface for the Coq interactive theorem prover developed by Dr. Chantal Keller. It is built around a simple SMT solver proven-correct in Coq.
 It works by encoding a Coq goal as an SMT formula, which may be proven valid by an external SMT solver. The SMT solver then generates a witness of the validity (for SAT, this witness would be the unsatisfiable core), which is validated by the simple SMT solver in Coq. Finally, the proof of correctness of this certified solver allows the reflection of the SMT decision in Coq, automatically solving the goal.
 
-\emph{SMT\_COQ} currently only support the theory of uninterpreted functions \emph{QF\_UF} and the theory of linear arithmetic \emph{QF\_LIA}, and interfaces with the outmoded SMT solver VeriT, but it is planned to support the theory of arrays \emph{QF\_AX} and interface with CVC4, a state-of-the-art SMT solver.
+\emph{SMT\_COQ} currently only support the theory of uninterpreted functions \emph{QF\_UF} and the theory of linear arithmetic \emph{QF\_LIA}, and interfaces with the outmoded SMT solver VeriT, but it is planned to support the theory of arrays \emph{QF\_AX} and interface with CVC4 \citep{CVC4}, a state-of-the-art SMT solver.
 
 % QF_AX, OF_AULIA and their support (and proof generation)
 \subsection{The SMT Theory of Arrays}
@@ -134,9 +134,9 @@ Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive
 %dev
 \subsection{A High-Level View of the Envisioned Machinery}
 The following graphics describes the different components and the steps that goes into automatically proving an SMT goal using an SMT solver. Doted line represents works done by external tools, where full lines are specific to this project. 
-
+\begin{center}
 \includegraphics[scale=0.5]{pictures/arch.png}
-
+\end{center}
 
 
 \begin{enumerate}
@@ -199,12 +199,12 @@ $$ a_i = \textsf{nthZ}\ l\ i\ d$$
 Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the result of every list operation to a new variable. Then, each operation is encoded according a general, sound correspondence to operations in the theory of arrays:
 
 % encoding of nth
-For every goal of the form $s = \textsf{nthZ}\ i\ ls d$, we add the following in the conclusion on the formula sent to the SMT solver:
+For every goal of the form $s = \textsf{nthZ}\ i\ ls\ d$, we add the following in the conclusion on the formula sent to the SMT solver:
 
-$$ (0 \leq j < \textsf{len}\ as) \to s = \textsf{select as j}\ \wedge$$
+$$ (0 \leq j < \textsf{len}\ as) \to s = \textsf{select } as\ j\ \wedge$$
 $$\neg (0 \leq j < \textsf{len}\ as) \to s = d $$
 
-Where $as$ is an array corresponding to the list $ls$, and $len$ is an uninterpreted functions which may be constrained by hypothesis in the VST goal about $ls$'s boundaries.
+Where $as$ is an array corresponding to the list $ls$, and $len$ is an uninterpreted functions which will be constrained by hypothesis in the VST goal about $ls$'s boundaries.
 
 
 % encoding of upd
@@ -227,7 +227,7 @@ Under this encoding, the result accessing the resulting array $as$ is equal to t
 % explanation of proof needed for the big picture to work
 While we strive for correctness of encoding, differences between lists
 and the infinite arrays as manipulated by \emph{QF\_AX} makes such encoding difficult to achieve in general. 
-Fortunately, we can instead using a sound, but incomplete encoding, such that the validity 
+Fortunately, we can instead use a simpler, sound but incomplete encoding, such that the validity 
 of the encoding implies the validity of the original formula, but not the other way around.
 In other word, some valid goals may result in invalid encodings, but valid encoding only arises from valid goals.
 
@@ -235,7 +235,7 @@ In other word, some valid goals may result in invalid encodings, but valid encod
 
 % proof of soundness of encoding
 %% QF_AX as Array GDT + Axioms
-We encode the theory of arrays over an abstract datatype arrays.
+We encode the theory of arrays over an abstract datatype arrays. For simplicity, we use \lstinline|nat| instead of \lstinline|Z|.  
 \begin{lstlisting}
   Variable array: forall {A:Type}, Type.
   Variable select: forall {A}, array A -> nat -> A.
@@ -259,8 +259,8 @@ We then define a function which transport the arrays (on which something was pro
 \begin{lstlisting}
   Fixpoint list_of_array'' {A} L (ar:array A) :=
   match L with
-    |  0%nat => nil
-    | (S n)%nat => (select ar (L))::(list_of_array'' n ar)
+    |  0 => nil
+    | S n => (select ar (L))::(list_of_array'' n ar)
   end.
 
 
@@ -276,9 +276,9 @@ Definition list_of_array {A} i (ar:array A) :=
 We prove our encoding of \lstinline|nth| sound in theorem \lstinline|enc_nth|
 
 \begin{lstlisting}
-Theorem enc_nth: forall A  (L j:nat) (ar:array A) (ls:list A) (s:A)  (d:A),
-  ((0 <= j < L)%nat -> s = select ar j) /\
-  (( j < 0 \/ L <= j)%nat -> s = d) ->
+Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
+  ((0 <= j < L) -> s = select ar j) /\
+  (( j < 0 \/ L <= j) -> s = d) ->
   (s = nth j (list_of_array L ar) d).
 \end{lstlisting}
 
@@ -288,6 +288,17 @@ Theorem enc_nth: forall A  (L j:nat) (ar:array A) (ls:list A) (s:A)  (d:A),
 
 
 %% upd_nth as store
+
+We then prove that in-bound \lstinline|store| encodes \lstinline|upd_nth| 
+
+\begin{lstlisting}
+Theorem enc_upd: forall A i ss (a: array A) L ss',
+   0 <= i < L
+   ss' = store ss i a ->
+   list_of_array L ss' = upd_nth i (list_of_array L ss) a.
+\end{lstlisting}
+
+
 
 %% ++ as branch-and-select
 
