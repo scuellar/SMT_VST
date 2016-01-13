@@ -18,6 +18,9 @@
 \newcommand{\qfax}{\emph{QF\_AX}}
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
 
+\newtheorem{theorem}{Theorem}
+\newtheorem{axiom}{Axiom}
+
 
 \title{COS 597B: Final Report\\
 \emph{Towards SMT in VST}}
@@ -277,6 +280,7 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 
 
 \subsection{Encoding Lists as Arrays}
+\label{sec:encoding}
 
 % difference between list and QF_AX
 In VST, C arrays are reasoned about propositionally as list of their content, as seen in figure \ref{fig:hoarswap}. VST uses total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. So, verifying programs that deal with arrays produces goals about lists, such as \ref{eq:sub1} through \ref{eq:sub3}. To use \emph{AUFLIA} we must create a sound encoding to translate lists into arrays and back. 
@@ -381,63 +385,61 @@ Finally, a conjunct composed of the main equality and of in bound conclusion gen
 \section{Soundness of the Solution, or Reflecting Back on Lists}
 \label{sec:proofs}
 % explanation of proof needed for the big picture to work
-While we strive for correctness of encoding, differences between lists
-and the infinite arrays as manipulated by \emph{QF\_AX} makes such encoding difficult to achieve in general. 
-Fortunately, we can instead use a simpler, sound but incomplete encoding, such that the validity 
-of the encoding implies the validity of the original formula, but not the other way around.
-In other word, some valid goals may result in invalid encodings, but valid encoding only arises from valid goals.
-
+While CVC4 does not yet produce witnesses for \emph{AUFLIA} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Te embed the witnesses back into cock as proofs of the original goal, the encoding from section \ref{ssec:encoding} must be sound. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
 % say something about nat vs Z
+Also, to simplify the proofs, we have used natural numbers instead of integers (as used in VST), but we think the extension to integers should be straight forward.
 
 % proof of soundness of encoding
 %% QF_AX as Array GDT + Axioms
-We encode the theory of arrays over an abstract datatype arrays. For simplicity, we use \texttt{nat} instead of \texttt{Z}.  
+We encode the theory of arrays over an abstract datatype arrays.  
+ \newline
+  \texttt{Variable array: forall \{A:Type\}, Type.} \newline
+  \texttt{Variable select: forall {A}, array A -> nat -> A.} \newline
+  \texttt{Variable store : forall {A}, array A -> nat -> A -> array A.}
+
+By representing arrays with \texttt{array}, we ensure that the only way to observe or modify arrays is to use \texttt{select} or \texttt{store}. We then assert the three axioms of \emph{QF\_AX} as assumption with the Coq keyword \texttt{Axiom}.
+
+\begin{axiom}[QFAX1: Select after store] \ \newline 
+$\forall A\ a\ i\ (e:A),$ select (store a i e) i = e.
+\end{axiom}
+
+\begin{axiom}[QFAX2: Select after different store] \ \newline
+$\forall A\ a\ i\ (e:A),  i\not = j \rightarrow$  select (store a i e) j = select a j.
+\end{axiom}
+
+\begin{axiom}[QFAX3: Extensionality ] \
+\newline ($\forall i$, select a i = select b i) $\rightarrow$ a = b.  
+\end{axiom}
+
+We then define a translation function from arrays (on which something was proved using \emph{QF\_AX}) back to the lists manipulated by VST:
+
 \begin{lstlisting}
-  Variable array: forall {A:Type}, Type.
-  Variable select: forall {A}, array A -> nat -> A.
-  Variable store : forall {A}, array A -> nat -> A -> array A.
-\end{lstlisting}
-By representing arrays with \texttt{Variable array}, we ensure that the only way to observe or modify arrays is to use \texttt{select} or \texttt{store}.
-
-We then assert the three axioms of \emph{QF\_AX} as assumption with the Coq keyword \texttt{Axiom}.
-
-\begin{lstlisting}
-Axiom QFAX1 : forall A a i (e:A),
-   select (store a i e) i = e.  
-Axiom QFAX2 : forall A a i j (e:A),
-   i <> j -> select (store a i e) j = select a j.  
-Axiom QFAX3 : forall A (a b: array A),
-   (forall i, select a i = select b i) -> a = b.  
-\end{lstlisting}
-
-We then define a function which transport the arrays (on which something was proved using \emph{QF\_AX}) back to the lists manipulated by VST:
-
-\begin{lstlisting}
-  Fixpoint list_of_array' {A} L (ar:array A) :=
-  match L with
-    |  0 => nil
-    | S n => (select ar (L))::(list_of_array' n ar)
-  end.
-
-
-Definition list_of_array {A} i (ar:array A) :=
-   List.rev (list_of_array' i ar).
+  Fixpoint list_of_array {A} L (ar:array A) :=
+  List.rev (match L with
+    		|  0 => nil
+    		| S n => (select ar (L))::(list_of_array' n ar)
+    		end).
 \end{lstlisting}
 
-
-
-
+Finally we prove the soundness theorems for each of the functions \texttt{nth}, \texttt{upd} and $\doubleplus$:
 %% nth as select
 
-\subsection{\texttt{nth}}
-We prove our encoding of \texttt{nth} sound in theorem \texttt{enc\_nth}, which is stated as follow:
+\begin{theorem}[\texttt{enc\_nth}: Soundness of \nth]
+\begin{align*}
+ & (\forall j, (j \leq 0 \vee L \leq j) \to \select{ar}{j} = d) \to \\
+ & \select{ar}{j} = \nth{i}{(\loa{L}{ar})}{d} 
+\end{align*}
+\begin{comment} OLD version
 \begin{align*}
  & (\forall j, (0 \leq j < L) \to s = \select{ar}{j}) \to \\
  & (\forall j, (j \leq 0 \vee L \leq j) \to s = d) \to \\
- & s = \nth{i}{\loa{L}{ar}}{d} 
+ & s = \nth{i}{(\loa{L}{ar})}{d} 
 \end{align*}
+\end{comment}
+\end{theorem}
 
-The proof goes by induction on \codeinl{L}, with simple reasoning about the length of $\textsf{list\_of\_array}$ and on the behavior of function \textsf{nth} on overflow.
+The theorem says that, as long as an array is constant (i.e. $d$) out of bounds, reading from the array is equal to reading from the reflected list. % I would add more about why this proofs soundness.
+%The proof goes by induction on \codeinl{L}, with simple reasoning about the length of $\textsf{list\_of\_array}$ and on the behavior of function \textsf{nth} on overflow.
 
 \begin{comment}
 \begin{lstlisting}
@@ -448,21 +450,17 @@ Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
 \end{lstlisting}
 \end{comment}
 
-
-
-
-
 %% upd_nth as store
-\subsection{\texttt{upd}}
-We then prove that in-bound \texttt{store} encodes \texttt{upd} in theorem \texttt{enc\_upd}, stated as follow:
 
+\begin{theorem}[\texttt{enc\_upd}: Soundness of \unth]
 \begin{align*}
-  (\forall i, (0 \leq i < L) \to ss = \store{ss}{i}{a}) \to 
-     \loa{L}{ss'} &= \unth{i}{\loa{L}{ss}}{a}
+  & ss' = \store{ss}{i}{a} \to \\
+  &  \loa{L}{ss'} = \unth{i}{\loa{L}{ss}}{a}
 \end{align*}
+\end{theorem}
 
-The proof is based on two lemmas, \texttt{enc\_upd\_ge} and \texttt{enc\_upd\_le} depending on if the update is done within the list's bound or not. Each lemmas are proven by induction on L.
-
+The theorem says that storing into the array and then reflecting is equal to reflecting the array and then updating the list.
+%The proof is based on two lemmas, \texttt{enc\_upd\_ge} and \texttt{enc\_upd\_le} depending on if the update is done within the list's bound or not. Each lemmas are proven by induction on L.
 
 \begin{comment}
 \begin{lstlisting}
@@ -475,14 +473,15 @@ Theorem enc_upd: forall A i ss (a: array A) L ss',
 
 
 %% ++ as branch-and-select
-\subsection{$\doubleplus$}
-Finally, we prove that branching \codeinl{select} produces a sound encoding for list-append in theorem \texttt{enc\_app}, stated as follow:
-
+\begin{theorem}[\texttt{enc\_app}: Soundness of $\doubleplus$]
 \begin{align*}
-(\forall i, (0 \leq i < L_1) \to \select{ss_1}{i} = \select{ss_3}{i}) &\to \\
-  (\forall i, (0 \leq i < L_2) \to \select{ss_2}{i} = \select{ss_3}{i + L_1}) &\to  \\
-  (\loa{L_1}{ss_1} \doubleplus \loa{L_2}{ss_2} &= \loa{L_1 + L_2}{ss_3}
+(\forall i, 0 \leq i < L_1 \to \select{ss_1}{i} = \select{ss_3}{i}) &\to \\
+  (\forall i, 0 \leq i < L_2 \to \select{ss_2}{i} = \select{ss_3}{(i + L_1)}) &\to  \\
+  (\loa{L_1}{ss_1} \doubleplus \loa{L_2}{ss_2} &= \loa{(L_1 + L_2)}{ss_3}
 \end{align*}
+\end{theorem}
+
+The theorem says that 'appending' two arrays and then reflecting back to a list is equivalent to reflecting the two arrays and then appending the resulting lists.
 
 \begin{comment}
 \begin{lstlisting}
@@ -492,8 +491,6 @@ Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
                    (list_of_array L1 ss1) ++ (list_of_array L2 ss2)  = list_of_array (L1+L2) ss3.
 \end{lstlisting}
 \end{comment}
-
-The proof follows by induction on $L_2$ and reasoning about $\doubleplus$ and \texttt{rev}.
 
 
 %end
