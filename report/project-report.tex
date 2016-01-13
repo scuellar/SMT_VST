@@ -5,19 +5,18 @@
 \usepackage{graphicx}
 \usepackage{natbib}
 \usepackage{amsmath}
+\usepackage[scaled=1.04]{couriers}
 
 \newcommand{\select}[2]{\textsf{select } #1\ #2}
 \newcommand{\store}[3]{\textsf{store } #1\ #2\ #3}
 \newcommand{\loa}[2]{\textsf{list\_of\_array } #1\ #2}
 \newcommand{\nth}[3]{\textsf{nth } #1\ #2\ #3}
-\newcommand{\unth}[3]{\textsf{upd\_nth } #1\ #2\ #3}
+\newcommand{\unth}[3]{\textsf{upd } #1\ #2\ #3}
 
 \newcommand{\codeinl}[1]{\texttt{#1}}
 
 \newcommand{\qfax}{\emph{QF\_AX}}
 \newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
-
-
 
 
 \title{COS 597B: Final Report\\
@@ -52,7 +51,7 @@ This report is organized as follow: Section 2 provide backgrounds about the tool
 \section{Motivating Example: Swap}
 \label{sec:motiv}
 
-We will use the simple C program \lstinline|swap| as a running example.
+We will use the simple C program \texttt{swap} as a running example. Here 
 
 \begin{figure}
 \begin{lstlisting}[language=C,basicstyle=\small,frame=none, tabsize=2, escapeinside={(*}{*)}]  % Start your code-block
@@ -66,10 +65,10 @@ void swap(int a[], int i, int j){
 }
 \end{lstlisting}
    \label{fig:swap}
-   \caption{The \lstinline|swap|  C code}
+   \caption{The \texttt{swap}  C code}
 \end{figure}
 
-The fucntion \lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. Assuming both index are in bounds, the function exchanges the contents of \lstinline|a| at indices \lstinline|i| and \lstinline|j|th, with the rest of \lstinline|a| being left unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts.
+The function \texttt{swap} is a C function taking in an array \texttt{a} and two indices \texttt{i} and \texttt{j}. Assuming both index are in bounds, the function exchanges the contents of \texttt{a} at indices \texttt{i} and \texttt{j}, with the rest of \texttt{a} being left unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts.
 \begin{figure}
 \begin{lstlisting}[numbers=left, basicstyle=\small,frame=none, tabsize=2, escapeinside={(*}{*)}]  
 Definition swap_spec :=
@@ -81,14 +80,14 @@ Definition swap_spec :=
   SEP (data_at sh (tarray tint size) (map Vint contents) a)
   POST [ tvoid]
    EX contents': list int,
-   PROP(Znth i contents' Int.zero = Znth j contents Int.zero;
+   PROP( \textbf{Znth i contents' Int.zero = Znth j contents Int.zero;
         Znth j contents' Int.zero = Znth i contents Int.zero;
-        forall k, i<> k -> j<> k -> Znth k contents' Int.zero = Znth k contents Int.zero)
+        forall k, i<> k -> j<> k -> Znth k contents' Int.zero = Znth k contents Int.zero})
    LOCAL()
    SEP (data_at sh (tarray tint size) (map Vint contents') a).
 \end{lstlisting}
 \label{fig:hoarswap}
-   \caption{The specification of \lstinline|swap| in VST}
+   \caption{The specification of \texttt{swap} in VST}
 \end{figure}
 Lines 4 through 7 represent the precondition starting with PRE. Line 5 requires the indices $i$ and $j$ to be in bound and the size of the array to be representable:
 $$ 0 \leq i < size \wedge 0 \leq j < size  \wedge 0 \leq size \leq Int.max\_signed $$
@@ -97,11 +96,47 @@ $$contents'[x] = \left\{\begin{array}{cc}contents[j] & x = i \\contents[i] & x =
 
 The automation of VST uses the sequence rule of Hoare logic
 $$\{P\} c_1;c_2 \{S\}$$
-and allows the user to step through the program, proving that every steps postcondition implies the next steps precondition. Finally, the user must prove that the resulting postcondition implies the postcondition of the specification. In the specific case of swap the final subgoal is:
-$$Subgoals \ here$$
-These kind of subgoals are not unique in any way. These are the kind of goals users see when verifying programs that read and write arrays, and these goals can be solved automatically by a modern SMT solver! 
+and allows the user to step through the program, proving that every steps postcondition implies the next steps precondition. Finally, the user must prove that the resulting postcondition implies the postcondition of the specification. In the specific case of swap there are three final subgoals:
 
-Well, not immediately. As we will see, we need to properly encode the goals, to embed them into a know Modulo Theory. Also, we need to translate the the goal to an SMT friendly language, such as SMTlib. Then, we find a SMT solver that contains the desired theory. Finally, we must reflect back the resulting proof, by translating it into to coq. All of these steps must be proven sound, such that the produced proof is in fact a proof of the original goal. % include the number of sections or references 
+\begin{equation}
+\label{sub1}
+\begin{aligned}
+&0 \leq i < size \rightarrow &\\
+&0 \leq j < size \rightarrow &\\
+&\textsf{length } contents' = size \rightarrow &\\
+& \hspace{20pt} \nth i contents' \  0 = \nth j contents \ 0.
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\label{sub2}
+\begin{aligned}
+&0 \leq i < size \rightarrow &\\
+&0 \leq j < size \rightarrow &\\
+&\textsf{length } contents' = size \rightarrow &\\
+& \hspace{20pt} \nth j contents' \  0 = \nth i contents \ 0.
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\label{sub3}
+\begin{aligned}
+&\forall k, k\not = i \rightarrow k\not =j & \\
+&0 \leq i < size \rightarrow &\\
+&0 \leq j < size \rightarrow &\\
+&\textsf{length } contents' = size \rightarrow &\\
+& \hspace{20pt} \nth k contents' \  0 = \nth k contents \ 0.
+\end{aligned}
+\end{equation}
+
+Where $contents'$ is the content of the array $a$ after execution:
+$$contents' = (\unth j (\unth i contents (\nth j contents \  0)) (\nth i contents \  0)).$$
+The three subgoals require that $i$ and $j$ are within bounds, between 0 and the size of $contents'$. Subgoals \ref{sub1} and \ref{sub2} state that indices $i$ and $j$ are swaped.
+Subgoal \ref{sub3} states that all other indices remain unchanged.
+
+\
+
+These kind of subgoals are not unique in any way. They are the kind of goals users see when verifying programs that read and write arrays, and these goals can be solved automatically by a modern SMT solver! Well, not immediately. As we will see, we need to properly encode the goals, to embed them into a know Modulo Theory. Also, we need to translate the the goal to an SMT friendly language, such as SMTlib. Then, we find a SMT solver that contains the desired theory. Finally, we must reflect back the resulting proof, by translating it into to coq. All of these steps must be proven sound, such that the produced proof is in fact a proof of the original goal. % include the number of sections or references 
 
 In this project, we will explore all of this steps with a particular emphasis on the initial encoding and the soundness of it.
 
