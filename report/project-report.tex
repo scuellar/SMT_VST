@@ -89,9 +89,9 @@ Definition swap_spec :=
   SEP (data_at sh (tarray tint size) (map Vint contents) a)
   POST [ tvoid]
    EX contents': list int,
-   PROP( \textbf{Znth i contents' Int.zero = Znth j contents Int.zero;
+   PROP( Znth i contents' Int.zero = Znth j contents Int.zero;
         Znth j contents' Int.zero = Znth i contents Int.zero;
-        forall k, i<> k -> j<> k -> Znth k contents' Int.zero = Znth k contents Int.zero})
+        forall k, i<> k -> j<> k -> Znth k contents' Int.zero = Znth k contents Int.zero)
    LOCAL()
    SEP (data_at sh (tarray tint size) (map Vint contents') a).
 \end{lstlisting}
@@ -100,16 +100,20 @@ Definition swap_spec :=
 \end{figure}
 Lines 4 through 7 represent the precondition starting with PRE. Line 5 requires the indices $i$ and $j$ to be in bound and the size of the array to be representable:
 $$ 0 \leq i < size \wedge 0 \leq j < size  \wedge 0 \leq size \leq Int.max\_signed $$
-Line 7 states the spatial constraints of the precondition. In this case, that there is an array of size $size$ at address $a$ and content $contents$. Lines 8 through 14, represent the postcondition, starting with POST. Line 14 ensures that, after execution, the the array at address $a$ has the same size, but new content $contents'$, quantified at line 9. Lines 10 through 12 are the most relevant for us: they specify the relationship between the initial and final contents of the array. Namely:
-$$contents'[x] = \left\{\begin{array}{cc}contents[j] & x = i \\contents[i] & x = j \\contents[x] & otherwise\end{array}\right.$$
+Line 7 states the spatial constraints of the precondition. In this case, that there is an array of size $size$ at address $a$ and with content $contents$. Lines 8 through 14, represent the postcondition, starting with POST. Line 14 ensures that, after execution, the array at address $a$ has the same size, but new content $contents'$, quantified at line 9. Lines 10 through 12 are the most relevant for us: they specify the relationship between the initial and final contents of the array. Namely:
+\begin{equation}
+\label{eq:condition}
+contents'[x] = \left\{\begin{array}{cc}contents[j] & x = i \\contents[i] & x = j \\contents[x] & otherwise\end{array}\right.
+\end{equation}
 
-The automation of VST uses the sequence rule of Hoare logic
-$$\{P\} c_1;c_2 \{S\}$$
-and allows the user to step through the program, proving that every steps postcondition implies the next steps precondition. Finally, the user must prove that the resulting postcondition implies the postcondition of the specification. In the specific case of swap there are three final subgoals:
+%The automation of VST uses the sequence rule of Hoare logic
+%$$\{P\} c_1;c_2 \{S\}$$
+%and allows the user to step through the program, proving that every steps postcondition implies the next steps precondition. Finally, the user must prove that the resulting postcondition implies the postcondition of the specification. In the specific case of swap there are three final subgoals:
 
+When proving \texttt{swap} correct, with respect to specification \ref{fig:hoarswap}, the automation of VST discharges all spatial conditions and produces three subgoals that the user must prove 'by hand'. Those final subgoals, shown bellow, correspond to proving equation \ref{eq:condition}:
 
 \begin{equation}
-\label{sub1}
+\label{eq:sub1}
 \begin{aligned}
 &0 \leq i < size \rightarrow &\\
 &0 \leq j < size \rightarrow &\\
@@ -119,7 +123,7 @@ and allows the user to step through the program, proving that every steps postco
 \end{equation}
 
 \begin{equation}
-\label{sub2}
+\label{eq:sub2}
 \begin{aligned}
 &0 \leq i < size \rightarrow &\\
 &0 \leq j < size \rightarrow &\\
@@ -129,7 +133,7 @@ and allows the user to step through the program, proving that every steps postco
 \end{equation}
 
 \begin{equation}
-\label{sub3}
+\label{eq:sub3}
 \begin{aligned}
 &\forall k, k\not = i \rightarrow k\not =j & \\
 &0 \leq i < size \rightarrow &\\
@@ -178,10 +182,10 @@ It works by encoding a Coq goal as an SMT formula, which may be proven valid by 
 \emph{CVC4} already supports many theories including both the theory of arrays and the theory of datatypes. It however only generate proof witness for a limited subset of the theories, limited at the moment to simple, quantifier-free arithmetic theories. We are aware of work being done currenlty on proof witness generation for \emph{QF\_AX} and \emph{QF\_AUFLIA}.
 
 
-\section{Overview of our Solution}
+\section{Towards a decision procedure for arrays}
 \label{sec:solution}
 
-In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \texttt{nth} and \texttt{upd\_nth} can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \emph{QF\_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
+As depicted in section \ref{sec:motiv}, the verification of programs that modify and read arrays, often result in subgoals about lists, such as \ref{eq:sub1}, \ref{eq:sub2} and \ref{eq:sub3}. In the remainder of this report, we present the steps we took towards solving such goals automatically. Our solution consist of encoding list operations as operations over arrays in various SMT theories. While simple operations such as \texttt{nth} and \texttt{upd\_nth} can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \emph{QF\_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
 
 Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTCoq and would require significant extension to SMT-LIB and CVC4 (which supports the theory but does not generate proof witness for it). 
 
@@ -237,7 +241,7 @@ The extensional theory of arrays is an SMT theory to reason about integer-indexe
 \item selecting from the last store:
   \begin{multicols}{2}
     
-  $$ \forall a i, \textsf{select } (\textsf{store } a\ i\ e)\ i = e$$
+  $$ \forall a\ i, \textsf{select } (\textsf{store } a\ i\ e)\ i = e$$
 which states that selecting returns what was last stored at that location
  
 \includegraphics[scale=0.5]{pictures/axiom1.png}
@@ -246,7 +250,7 @@ which states that selecting returns what was last stored at that location
   
 \item selecting from a previous store:
   \begin{multicols}{2}
-  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a i$$
+  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a\ i$$
   which means that storing an element has not effect on what can be selected at other indices.
 
   \includegraphics[scale=0.5]{pictures/axiom2.png}
