@@ -4,6 +4,21 @@
 \usepackage{comment}
 \usepackage{graphicx}
 \usepackage{natbib}
+\usepackage{amsmath}
+
+\newcommand{\select}[2]{\textsf{select } #1\ #2}
+\newcommand{\store}[3]{\textsf{store } #1\ #2\ #3}
+\newcommand{\loa}[2]{\textsf{list\_of\_array } #1\ #2}
+\newcommand{\nth}[3]{\textsf{nth } #1\ #2\ #3}
+\newcommand{\unth}[3]{\textsf{upd\_nth } #1\ #2\ #3}
+
+\newcommand{\codeinl}[1]{\texttt{#1}}
+
+\newcommand{\qfax}{\emph{QF\_AX}}
+\newcommand\doubleplus{+\kern-1.3ex+\kern0.8ex}
+
+
+
 
 \title{COS 597B: Final Report\\
 \emph{Towards SMT in VST}}
@@ -304,15 +319,21 @@ Definition list_of_array {A} i (ar:array A) :=
 %% nth as select
 
 We prove our encoding of \lstinline|nth| sound in theorem \lstinline|enc_nth|
-
+\begin{multline*}
+  (\forall j, (0 \leq j < L) \to s = \select{ar}{j}) \to \\
+  (\forall j, (j \leq 0 \vee L \leq j) \to s = d) \to \\
+  s = \nth{i}{\loa{L}{ar}}{d} $$
+\end{multline*}
+  
+\begin{comment}
 \begin{lstlisting}
 Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
   ((0 <= j < L) -> s = select ar j) /\
   (( j < 0 \/ L <= j) -> s = d) ->
   (s = nth j (list_of_array L ar) d).
 \end{lstlisting}
+\end{comment}
 
-...
 
 
 
@@ -321,16 +342,39 @@ Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
 
 We then prove that in-bound \lstinline|store| encodes \lstinline|upd_nth| 
 
+\begin{multline*}
+  (\forall i, (0 \leq i < L) \to ss = \store{ss}{i}{a}) \to 
+     \loa{L}{ss'} = \unth{i}{\loa{L}{ss}}{a}$$
+\end{multline*}
+
+\begin{comment}
 \begin{lstlisting}
 Theorem enc_upd: forall A i ss (a: array A) L ss',
    0 <= i < L
    ss' = store ss i a ->
    list_of_array L ss' = upd_nth i (list_of_array L ss) a.
 \end{lstlisting}
-
+\end{comment}
 
 
 %% ++ as branch-and-select
+
+Finally, we prove that branching \codeinl{select} produces a sound encoding for list-append:
+
+\begin{multline*}
+(\forall i, (0 \leq i < L_1) \to \select{ss_1}{i} = \select{ss_3}{i}) \to \\
+  (\forall i, (0 \leq i < L_2) \to \select{ss_2}{i} = \select{ss_3}{i + L_1}) \to  \\
+  (\loa{L_1}{ss_1} \doubleplus \loa{L_2}{ss_2} = \loa{L_1 + L_2}{ss_3}
+\end{multline*}
+
+\begin{comment}
+\begin{lstlisting}
+Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
+                   (forall i, (0 <= i < L1)%nat -> select  ss1 i = select  ss3 i) ->
+                   (forall i, (0 <= i < L2)%nat -> select ss2 i = select ss3 (i + L1)) ->
+                   (list_of_array L1 ss1) ++ (list_of_array L2 ss2)  = list_of_array (L1+L2) ss3.
+\end{lstlisting}
+\end{comment}
 
 
 %end
