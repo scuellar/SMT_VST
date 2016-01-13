@@ -52,7 +52,7 @@ This report is organized as follow: Section 2 provide backgrounds about the tool
 \section{Motivating Example: Swap}
 \label{sec:motiv}
 
-We will use the simple C program \lstinline|swap| as a running example.
+We will use the simple C program \texttt{swap} as a running example.
 
 \begin{figure}
 \begin{lstlisting}[language=C,basicstyle=\small,frame=none, tabsize=2, escapeinside={(*}{*)}]  % Start your code-block
@@ -66,10 +66,10 @@ void swap(int a[], int i, int j){
 }
 \end{lstlisting}
    \label{fig:swap}
-   \caption{The \lstinline|swap|  C code}
+   \caption{The \texttt{swap}  C code}
 \end{figure}
 
-The fucntion \lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. Assuming both index are in bounds, the function exchanges the contents of \lstinline|a| at indices \lstinline|i| and \lstinline|j|th, with the rest of \lstinline|a| being left unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts.
+The fucntion \texttt{swap} is a C function taking in an array \texttt{a} and two indices \texttt{i} and \texttt{j}. Assuming both index are in bounds, the function exchanges the contents of \texttt{a} at indices \texttt{i} and \texttt{j}th, with the rest of \texttt{a} being left unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts.
 \begin{figure}
 \begin{lstlisting}[numbers=left, basicstyle=\small,frame=none, tabsize=2, escapeinside={(*}{*)}]  
 Definition swap_spec :=
@@ -88,7 +88,7 @@ Definition swap_spec :=
    SEP (data_at sh (tarray tint size) (map Vint contents') a).
 \end{lstlisting}
 \label{fig:hoarswap}
-   \caption{The specification of \lstinline|swap| in VST}
+   \caption{The specification of \texttt{swap} in VST}
 \end{figure}
 Lines 4 through 7 represent the precondition starting with PRE. Line 5 requires the indices $i$ and $j$ to be in bound and the size of the array to be representable:
 $$ 0 \leq i < size \wedge 0 \leq j < size  \wedge 0 \leq size \leq Int.max\_signed $$
@@ -114,7 +114,7 @@ In this project, we will explore all of this steps with a particular emphasis on
 TODO
 
 
-%All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \lstinline|Znth| and \lstinline|upd_Znth|. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
+%All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \texttt{Znth} and \texttt{upd_Znth}. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
 
 
 
@@ -175,7 +175,7 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 \section{Overview of our Solution}
 \label{sec:solution}
 
-In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \lstinline|nth| and \lstinline|upd_nth| can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \emph{QF\_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
+In the remainder of this report, we present our solution which consist of encoding list operations as operation over arrays in various SMT theories. While simple operations such as \texttt{nth} and \texttt{upd\_nth} can be encoded in the quantifier-free fragment of the theory of array with uninterpreted functions and linear arithmetic \emph{QF\_AUFLIA}, other operations require stronger theories such as \emph{AUFLIA}. 
 
 Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive datatypes would lead to a direct encoding of lists and list operations, its support is not planned for SMTCoq and would require significant extension to SMT-LIB and CVC4 (which supports the theory but does not generate proof witness for it). 
 
@@ -233,15 +233,15 @@ Due to current limitation of SMTCoq, in CVC4 and to time constraint, the work de
 In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
 \begin{lstlisting}
 inductive list A : Set :=
- | nil : list A
- | cons : A -> list A -> list A.
+ } nil : list A
+ } cons : A -> list A -> list A.
 \end{lstlisting}
 
-In VST, C arrays are reasoned about propositionally as list, using total operation such as \lstinline|upd_Znth| and \lstinline|nthZ|, using mathematical integers as index and a default value as argument to \lstinline|nthZ| returned when accessing the array out of bound. 
+In VST, C arrays are reasoned about propositionally as list, using total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, using mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. 
 
 As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
-The basis of our encoding is that the \emph{QF\_AX} array \lstinline|a| representing Coq list \lstinline|l| will be constrained to contain the same elements as \lstinline|l| from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
+The basis of our encoding is that the \emph{QF\_AX} array \texttt{a} representing Coq list \texttt{l} will be constrained to contain the same elements as \texttt{l} from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
 $$ a_i = \textsf{nthZ}\ l\ i\ d$$
 
 Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the result of every list operation to a new variable. Then, each operation is encoded according a general, sound correspondence to operations in the theory of arrays:
@@ -283,15 +283,15 @@ In other word, some valid goals may result in invalid encodings, but valid encod
 
 % proof of soundness of encoding
 %% QF_AX as Array GDT + Axioms
-We encode the theory of arrays over an abstract datatype arrays. For simplicity, we use \lstinline|nat| instead of \lstinline|Z|.  
+We encode the theory of arrays over an abstract datatype arrays. For simplicity, we use \texttt{nat} instead of \texttt{Z}.  
 \begin{lstlisting}
   Variable array: forall {A:Type}, Type.
   Variable select: forall {A}, array A -> nat -> A.
   Variable store : forall {A}, array A -> nat -> A -> array A.
 \end{lstlisting}
-By representing arrays with \lstinline|Variable array|, we ensure that the only way to observe or modify arrays is to use \lstinline|select| or \lstinline|store|.
+By representing arrays with \texttt{Variable array}, we ensure that the only way to observe or modify arrays is to use \texttt{select} or \texttt{store}.
 
-We then assert the three axioms of \lstinline|QF_AX| as assumption with the Coq keyword \lstinline|Axiom|.
+We then assert the three axioms of \emph{QF\_AX} as assumption with the Coq keyword \texttt{Axiom}.
 
 \begin{lstlisting}
 Axiom QFAX1 : forall A a i (e:A),
@@ -302,13 +302,13 @@ Axiom QFAX3 : forall A (a b: array A),
    (forall i, select a i = select b i) -> a = b.  
 \end{lstlisting}
 
-We then define a function which transport the arrays (on which something was proved using \lstinline|QF_AX|) back to the lists manipulated by VST:
+We then define a function which transport the arrays (on which something was proved using \emph{QF\_AX}) back to the lists manipulated by VST:
 
 \begin{lstlisting}
   Fixpoint list_of_array'' {A} L (ar:array A) :=
   match L with
-    |  0 => nil
-    | S n => (select ar (L))::(list_of_array'' n ar)
+    }  0 => nil
+    } S n => (select ar (L))::(list_of_array'' n ar)
   end.
 
 
@@ -321,13 +321,16 @@ Definition list_of_array {A} i (ar:array A) :=
 
 %% nth as select
 
-We prove our encoding of \lstinline|nth| sound in theorem \lstinline|enc_nth|
-\begin{multline*}
-  (\forall j, (0 \leq j < L) \to s = \select{ar}{j}) \to \\
-  (\forall j, (j \leq 0 \vee L \leq j) \to s = d) \to \\
-  s = \nth{i}{\loa{L}{ar}}{d} $$
-\end{multline*}
-  
+\subsection{\texttt{nth}}
+We prove our encoding of \texttt{nth} sound in theorem \texttt{enc\_nth}, which is stated as follow:
+\begin{align*}
+ & (\forall j, (0 \leq j < L) \to s = \select{ar}{j}) \to \\
+ & (\forall j, (j \leq 0 \vee L \leq j) \to s = d) \to \\
+ & s = \nth{i}{\loa{L}{ar}}{d} 
+\end{align*}
+
+The proof goes by induction on \codeinl{L}, with simple reasoning about the length of $\textsf{list\_of\_array}$ and on the behavior of function \textsf{nth} on overflow.
+
 \begin{comment}
 \begin{lstlisting}
 Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
@@ -342,13 +345,16 @@ Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
 
 
 %% upd_nth as store
+\subsection{\texttt{upd\_nth}}
+We then prove that in-bound \texttt{store} encodes \texttt{upd\_nth} in theorem \texttt{enc\_upd}, stated as follow:
 
-We then prove that in-bound \lstinline|store| encodes \lstinline|upd_nth| 
-
-\begin{multline*}
+\begin{align*}
   (\forall i, (0 \leq i < L) \to ss = \store{ss}{i}{a}) \to 
-     \loa{L}{ss'} = \unth{i}{\loa{L}{ss}}{a}$$
-\end{multline*}
+     \loa{L}{ss'} &= \unth{i}{\loa{L}{ss}}{a}
+\end{align*}
+
+The proof is based on two lemmas, \texttt{enc\_upd\_ge} and \texttt{enc\_upd\_le} depending on if the update is done within the list's bound or not. Each lemmas are proven by induction on L.
+
 
 \begin{comment}
 \begin{lstlisting}
@@ -361,14 +367,14 @@ Theorem enc_upd: forall A i ss (a: array A) L ss',
 
 
 %% ++ as branch-and-select
+\subsection{$\doubleplus$}
+Finally, we prove that branching \codeinl{select} produces a sound encoding for list-append in theorem \texttt{enc\_app}, stated as follow:
 
-Finally, we prove that branching \codeinl{select} produces a sound encoding for list-append:
-
-\begin{multline*}
-(\forall i, (0 \leq i < L_1) \to \select{ss_1}{i} = \select{ss_3}{i}) \to \\
-  (\forall i, (0 \leq i < L_2) \to \select{ss_2}{i} = \select{ss_3}{i + L_1}) \to  \\
-  (\loa{L_1}{ss_1} \doubleplus \loa{L_2}{ss_2} = \loa{L_1 + L_2}{ss_3}
-\end{multline*}
+\begin{align*}
+(\forall i, (0 \leq i < L_1) \to \select{ss_1}{i} = \select{ss_3}{i}) &\to \\
+  (\forall i, (0 \leq i < L_2) \to \select{ss_2}{i} = \select{ss_3}{i + L_1}) &\to  \\
+  (\loa{L_1}{ss_1} \doubleplus \loa{L_2}{ss_2} &= \loa{L_1 + L_2}{ss_3}
+\end{align*}
 
 \begin{comment}
 \begin{lstlisting}
@@ -378,6 +384,8 @@ Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
                    (list_of_array L1 ss1) ++ (list_of_array L2 ss2)  = list_of_array (L1+L2) ss3.
 \end{lstlisting}
 \end{comment}
+
+The proof follows by induction on $L_2$ and reasoning about $\doubleplus$ and \texttt{rev}.
 
 
 %end
