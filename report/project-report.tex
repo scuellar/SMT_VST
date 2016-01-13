@@ -123,9 +123,12 @@ TODO
 
 % VST
 \subsection{The Verified Software Toolchain}
-VST is a tool for proving programs correct with respect to their formal specification. TODO... 
 
-% SMT COQ
+The Verified Software Toolchain is a project developed at Princeton University\cite{VST}, which helps users verify, with machine-checked proofs, programs written in C with respect to their specifications written in Coq. The logic comes with an end-to-end proof assuring that the user verification proofs really hold in the machine-language program, running in the operating-system context. At the top level, \emph{VST} provides a separation logic to reason about pointer-manipulating programs and a \emph{Hoare logic} with full support for C control-flow and data-flow. 
+
+Each of those components comes with partial automation, helping the user reason about her programs. In particular, VST provides tactics to reason about the control-flow of a program. The tactics produce subgoals in the form of consequence rules. VST provides automation to discharge spatial subgoals (that is dealing with pointers, in the separation logic), but when the subgoals are pure (i.e. not spatial), the user must prove them by hand. Such pure theorems are often about data-structure manipulation, functions or linear arithmetic and could greatly benefit from automation.
+
+% SMTCOQ
 \subsection{SMT\_COQ}
 \emph{SMT\_COQ} is a certified SMT interface for the Coq interactive theorem prover developed by Dr. Chantal Keller. It is built around a simple SMT solver proven-correct in Coq.
 It works by encoding a Coq goal as an SMT formula, which may be proven valid by an external SMT solver. The SMT solver then generates a witness of the validity (for SAT, this witness would be the unsatisfiable core), which is validated by the simple SMT solver in Coq. Finally, the proof of correctness of this certified solver allows the reflection of the SMT decision in Coq, automatically solving the goal.
@@ -134,7 +137,7 @@ It works by encoding a Coq goal as an SMT formula, which may be proven valid by 
 
 % QF_AX, OF_AULIA and their support (and proof generation)
 \subsection{The SMT Theory of Arrays}
-The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \lstinline|select| of type \lstinline|array -> int -> el| and modified with function \lstinline|store| of type \lstinline|array -> int -> el -> array|. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
+The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \texttt{select} of type \texttt{array $\rightarrow$ int $\rightarrow$ el} and modified with function \texttt{store} of type \texttt{array $\rightarrow$ int $\rightarrow$ el $\rightarrow$ array}. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
 \begin{enumerate}
 \item selecting from the last store:
   \begin{multicols}{2}
