@@ -54,9 +54,9 @@ void swap(int a[], int i, int j){
    \caption{The \lstinline|swap|  C code}
 \end{figure}
 
-The fucntion \lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. Assuming both index are in bounds, the function exchanges the contents of \lstinline|a| at indices \lstinline|i| and \lstinline|j|th, with the rest of \lstinline|a| being left unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts bellow.
+The fucntion \lstinline|swap| is a C function taking in an array \lstinline|a| and two indices \lstinline|i| and \lstinline|j|. Assuming both index are in bounds, the function exchanges the contents of \lstinline|a| at indices \lstinline|i| and \lstinline|j|th, with the rest of \lstinline|a| being left unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts.
 \begin{figure}
-\begin{lstlisting}[basicstyle=\small,frame=none, tabsize=2, escapeinside={(*}{*)}]  
+\begin{lstlisting}[numbers=left, basicstyle=\small,frame=none, tabsize=2, escapeinside={(*}{*)}]  
 Definition swap_spec :=
  DECLARE _swap
   WITH a: val, sh: share, contents: list int, i : Z, j : Z, size: Z
@@ -75,28 +75,31 @@ Definition swap_spec :=
 \label{fig:hoarswap}
    \caption{The specification of \lstinline|swap| in VST}
 \end{figure}
+Lines 4 through 7 represent the precondition starting with PRE. Line 5 requires the indices $i$ and $j$ to be in bound and the size of the array to be representable:
+$$ 0 \leq i < size \wedge 0 \leq j < size  \wedge 0 \leq size \leq Int.max\_signed $$
+Line 7 states the spatial constraints of the precondition. In this case, that there is an array of size $size$ at address $a$ and content $contents$. Lines 8 through 14, represent the postcondition, starting with POST. Line 14 ensures that, after execution, the the array at address $a$ has the same size, but new content $contents'$, quantified at line 9. Lines 10 through 12 are the most relevant for us: they specify the relationship between the initial and final contents of the array. Namely:
+$$contents'[x] = \left\{\begin{array}{cc}contents[j] & x = i \\contents[i] & x = j \\contents[x] & otherwise\end{array}\right.$$
 
-The propositional line of the precondition, denoted by the first \lstinline|PROP| which states that the indices are in bounds:
-$$ 0 \leq i < size;  0 \leq j < size; 0 \leq size \leq Int.max\_signed $$
-And the propositional line of the postcondition, denoted by the second \lstinline|PROP| which states that the contents of the final array are the updated contents of the old array as expected, in math notation
-$$ a_{new}[i] = a_{old}[j] \wedge$$
-$$  a_{new}[j] = a_{old}[i] \wedge $$
-$$ \forall k\not = i, k \not = j, a_{new}[k] = a_{new}[k]$$
-%        Znth j contents' Int.zero = Znth i contents Int.zero ;
- %       forall k, i<> k -> j<> k -> 
-   %          Znth k contents' Int.zero = Znth k contents Int.zero
+The automation of VST uses the sequence rule of Hoare logic
+$$\{P\} c_1;c_2 \{S\}$$
+and allows the user to step through the program, proving that every steps postcondition implies the next steps precondition. Finally, the user must prove that the resulting postcondition implies the postcondition of the specification. In the specific case of swap the final subgoal is:
+$$Subgoals \ here$$
+These kind of subgoals are not unique in any way. These are the kind of goals users see when verifying programs that read and write arrays, and these goals can be solved automatically by a modern SMT solver! 
 
+Well, not immediately. As we will see, we need to properly encode the goals, to embed them into a know Modulo Theory. Also, we need to translate the the goal to an SMT friendly language, such as SMTlib. Then, we find a SMT solver that contains the desired theory. Finally, we must reflect back the resulting proof, by translating it into to coq. All of these steps must be proven sound, such that the produced proof is in fact a proof of the original goal. % include the number of sections or references 
 
-Which states that 
+In this project, we will explore all of this steps with a particular emphasis on the initial encoding and the soundness of it.
 
 
 
-While proving that the C code for swap respect this specification using VST, the following list-based side conditions are generated:
+
+
+%While proving that the C code for swap respect this specification using VST, the following list-based side conditions are generated:
 
 TODO
 
 
-All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \lstinline|Znth| and \lstinline|upd_Znth|. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
+%All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \lstinline|Znth| and \lstinline|upd_Znth|. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
 
 
 
@@ -104,8 +107,8 @@ All these conditions can be proven with simple but tedious proofs based solely o
 \label{sec:background}
 
 % VST
-\subsection{VST}
-
+\subsection{The Verified Software Toolchain}
+VST is a tool for proving programs correct with respect to their formal specification. TODO... 
 
 % SMT COQ
 \subsection{SMT\_COQ}
