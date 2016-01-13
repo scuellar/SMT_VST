@@ -273,8 +273,8 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
 \begin{lstlisting}
 inductive list A : Set :=
- } nil : list A
- } cons : A -> list A -> list A.
+ | nil : list A
+ | cons : A -> list A -> list A.
 \end{lstlisting}
 
 In VST, C arrays are reasoned about propositionally as list, using total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, using mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. 
@@ -289,22 +289,25 @@ Given a goal about lists in VST, we first rewrite it in a three-address code fas
 % encoding of nth
 For every goal of the form $s = \textsf{nthZ}\ i\ ls\ d$, we add the following in the conclusion on the formula sent to the SMT solver:
 
-$$ (0 \leq j < \textsf{len}\ as) \to s = \textsf{select } as\ j\ \wedge$$
-$$\neg (0 \leq j < \textsf{len}\ as) \to s = d $$
-
+\begin{align*}
+&(0 \leq j < \textsf{len}\ as) \to s = \textsf{select } as\ j\ \wedge \\
+&\neg (0 \leq j < \textsf{len}\ as) \to s = d 
+\end{align*}
 Where $as$ is an array corresponding to the list $ls$, and $len$ is an uninterpreted functions which will be constrained by hypothesis in the VST goal about $ls$'s boundaries.
 
 
 % encoding of upd
-$\textsf{upd\_Znth}$ is encoded almost directly by $AX$'s operation $\textsf{store}$. For every goal of the form $s = \textsf{upd\_Znth\ i\ e\ ls}$, we augment the formula with
+$\textsf{upd\_nth}$ is encoded almost directly by $AX$'s operation $\textsf{store}$. For every goal of the form $s = \textsf{upd\_nth\ i\ e\ ls}$, we augment the formula with
 $$ as' = \textsf{store}\ as\ i\ e \wedge 0 \leq i \leq \textsf{len}\ as \to \textsf{len}\ as' = \textsf{len}\ as$$
 which encodes the update operation and the fact that updating within boundaries preserves the length of the list.
 
 
 % encoding of append
-just like $\textsf{nthZ}$, $\textsf{append}$ is encoded using $\textsf{select}$. For every goal of the form $ls = ls_1 ++ ls_2$, we add the following constraints:
-$$(0 \leq j < \textsf{len}\ as1) \to \textsf{select}\ as1\ j = \textsf{select}\ as\ j \wedge $$
-$$(\textsf{len}\ as1 \leq j < \textsf{len}\ as1 + \textsf{len}\ as2) \to \textsf{select}\ as2\ j = \textsf{select}\ as\ (\textsf{len}\ as1 + j)$$
+just like $\textsf{nthZ}$, $\textsf{append}$ is encoded using $\textsf{select}$. For every goal of the form $ls = ls_1 \doubleplus ls_2$, we add the following constraints:
+\begin{align*}
+&(0 \leq j < \textsf{len}\ as1) \to \textsf{select}\ as1\ j = \textsf{select}\ as\ j\ \wedge \\
+&(\textsf{len}\ as1 \leq j < \textsf{len}\ as1 + \textsf{len}\ as2) \to \textsf{select}\ as2\ j = \textsf{select}\ as\ (\textsf{len}\ as1 + j)
+  \end{align*}
 Under this encoding, the result accessing the resulting array $as$ is equal to the first array $as1$ between $0$ and the length of the first list $ls_1$ and to the second array $as2$ between the length of the first list $ls_1$ and the length of the resulting list $ls$.
 
 

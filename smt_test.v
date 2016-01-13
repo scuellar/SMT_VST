@@ -9,7 +9,7 @@ Require Import floyd.sublist.
 Require Import Streams.
 
 Section PROOF.
-
+About le_gt_dec.
 
   Set Implicit Arguments.
   Variable array: forall {A:Type}, Type.
@@ -52,6 +52,7 @@ Lemma length_la: forall A L (ar:array A), length (list_of_array L ar) = L.
              - simpl; f_equal; assumption.
       Qed.
 
+
 Theorem enc_nth: forall A  (L j:nat) (ar:array A) (ls:list A) (s:A)  (d:A),
                    ((0 <= j < L)%nat -> s = select ar j) /\
                     (( j < 0 \/ L <= j)%nat -> s = d) ->
@@ -77,6 +78,7 @@ Proof.
         rewrite IHL; auto.
   - omega.
 Qed.
+Print nth_overflow.
 
 Fixpoint upd_nth {A:Type} (i:nat) (l:list A) (a:A): list A :=
   match (i, l) with
