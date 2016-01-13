@@ -320,6 +320,61 @@ Just like $\textsf{nth}$, $\textsf{append}$ is encoded using $\textsf{select}$. 
 Under this encoding, the result accessing the resulting array $as$ is equal to the first array $as1$ between $0$ and the length of the first list $ls_1$ and to the second array $as2$ between the length of the first list $ls_1$ and the length of the resulting list $ls$.
 
 
+\subsection{Swap Revisited}
+
+Having presented our encoding of list operations in the theory of arrays, we now show the SMT query generated from encoding a goal from \textt{swap}, the C program considered in section~\ref{sec:motif}. 
+
+For the goal~\ref{eq:sub2}, which states that the $i$th element in the target array is equal to the $j$th element in the input if we assume that $i$ and $j$ are in bound, we would generate the following \emph{QF\_AUFLIA} query:
+
+First, the hypothesis $0 \leq i < size$ and $0 \leq j < size$ are directly encoded as \emph{QF\_LIA}
+
+\end{lstlisting}
+(assert (and (<= 0 i) (< i size)))
+
+(assert (and (<= 0 j) (< j size)))
+\end{lstlisting}
+
+
+Then, each of the program operations is named and encoded as previously described. 
+\begin{lstlisting}
+(assert (let ((?saj  (select a j)))
+        (let ((?lspp (store a i ?saj))
+	      (?sai (select a i)))
+	 (let ((?lsp (store ?lspp j ?sai)))
+	   (let ((?ls (select ?lsp i))
+                (?rs (select a j)))
+  ...
+\end{lstlisting}
+
+Conjuncts are added to assert relation between \texttt{len} variables affected by \texttt{store}s.
+
+\begin{lstlisting}
+  ...
+	   (and (=> (and (<= 0 i) (< i len_a)) (= len_lspp len_a))
+           (and (=> (and (<= 0 j) (< j len_lspp)) (= len_lsp len_lspp))
+  ...
+\end{lstlisting}
+
+Conjuncts are added to assert relation between 
+\begin{lstlisting}
+  ...
+          (and (=> (not (= ?saj 0)) (and (<= 0 j) (< j len_a)))
+	  (and (=> (not (= ?saj 0)) (and (<= 0 i) (< i len_a)))
+          (and (=> (not (= ?ls 0)) (and (<= 0 i) (< i len_lsp)))
+          (and (=> (not (= ?rs 0)) (and (<= 0 j) (< j len_a)))
+  ...
+\end{lstlisting}
+
+
+Finally, a conjunct composed of the main equality and of in bound conclusion generated from 
+
+\begin{lstlisting}
+  ...
+              (not 
+		    (and (= ?ls ?rs)
+		     (and (and (<= 0 i) (< i len_a))
+		     (and (<= 0 j) (< j len_lspp))))))))))))))))
+\end{lstlisting}
 
 
 \section{Soundness of the Solution, or Reflecting Back on Lists}
