@@ -279,16 +279,17 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 \subsection{Encoding Lists as Arrays}
 
 % difference between list and QF_AX
-In VST, C arrays are reasoned about propositionally as list of their content, as seen in figure \ref{fig:hoarswap}. VST uses total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. So, programs dealing with arrays, VST produces goals about lists, such as \ref{eq:sub1} through \ref{eq:sub3}. To use \emph{AUFLIA} we must create a sound encoding to translate lists into arrays and back. 
+In VST, C arrays are reasoned about propositionally as list of their content, as seen in figure \ref{fig:hoarswap}. VST uses total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. So, verifying programs that deal with arrays produces goals about lists, such as \ref{eq:sub1} through \ref{eq:sub3}. To use \emph{AUFLIA} we must create a sound encoding to translate lists into arrays and back. 
 
-%In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
-%\begin{lstlisting}
-%inductive list A : Set :=
-% | nil : list A
-% | cons : A -> list A -> list A.
-%\end{lstlisting}
-
-As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
+In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type.
+\begin{center}
+\begin{lstlisting}
+inductive list A : Set :=
+ | nil : list A
+ | cons : A -> list A -> list A.
+\end{lstlisting}
+\end{center}
+On the other hand, as seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
 The basis of our encoding is that the \emph{QF\_AX} array \texttt{a} representing Coq list \texttt{l} will be constrained to contain the same elements as \texttt{l} from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
 $$ a_i = \textsf{nthZ}\ l\ i\ d$$
