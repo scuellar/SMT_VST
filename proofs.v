@@ -121,6 +121,15 @@ Proof.
         rewrite rev_length; auto.
     Qed.
 
+Theorem store_oob: forall A L i ss (a:array A), 
+     L < i ->
+     list_of_array' L (store ss i a) = list_of_array' L ss.
+Proof.
+  induction L; intros.
+  - reflexivity.
+  - simpl. rewrite IHL by omega. rewrite QFAX2 by omega. reflexivity.
+Qed.
+    
 Theorem enc_upd_ge:
   forall A i ss (a: array A) L ss',
     (L <= i)%nat ->
@@ -134,7 +143,7 @@ Proof.
       rewrite H0 in *. rewrite QFAX2; try omega.
       rewrite upd_nth_app1.
       f_equal; auto.
-      f_equal. admit.
+      f_equal; apply store_oob; auto.
       rewrite rev_length, length_la'.
       destruct (i-L)%nat eqn:eq. contradict H; omega.
       simpl. destruct n; reflexivity.
