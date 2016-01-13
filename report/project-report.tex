@@ -381,11 +381,21 @@ Finally, a conjunct composed of the main equality and of in bound conclusion gen
 		     (and (<= 0 j) (< j len_lspp))))))))))))))))
 \end{lstlisting}
 
+%Hey Olivier, use the following subsection as a conclusion:
+\subsection{Putting it all together}
+Now that we can encode Coq list lemmas into array lemmas, we can directly feed those lemmas into CVC4 and prove them. The three subgoals \ref{eq:sub1} through \ref{eq:sub3} have been verified in this fashion. 
+In general, to use automation within VST a user must follow the following steps:
+\begin{enumerate}
+\item
+\end{enumerate}
+
+
+
 
 \section{Soundness of the Solution, or Reflecting Back on Lists}
 \label{sec:proofs}
 % explanation of proof needed for the big picture to work
-While CVC4 does not yet produce witnesses for \emph{AUFLIA} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Te embed the witnesses back into cock as proofs of the original goal, the encoding from section \ref{ssec:encoding} must be sound. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
+While CVC4 does not yet produce witnesses for \emph{AUFLIA} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Te embed the witnesses back into cock as proofs of the original goal, the encoding from section \ref{sec:encoding} must be sound. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
 % say something about nat vs Z
 Also, to simplify the proofs, we have used natural numbers instead of integers (as used in VST), but we think the extension to integers should be straight forward.
 
@@ -492,22 +502,22 @@ Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
 \end{lstlisting}
 \end{comment}
 
+TODO: Here we need to explain how those three theorems in fact say that the encoding is good.
 
 %end
 \section{Future Work}
 \label{sec:future}
 % 4 pages just there
-In the near future, we expect most of the current limitations to our work due to external tools to be lifted.
+In the near future, we expect most of the current limitations to our work due to external tools to be lifted. In order for the pipeline described in the previous sections to be completed, we need CVC4 to generate witnesses for the theory of arrays and SMTcoq to support the theory of arrays and to interface with CVC4. We have the confirmation from the developer of CVC4 and SMTcoq that these are being worked on. This will allow us to streamline the process to automatically discharge goals directly within VST. 
 
-In order for the pipeline described in the previous sections to be completed, we need CVC4 to generate witnesses for the theory of arrays and SMTcoq to support the theory of arrays and to interface with CVC4. We have the confirmation from the developer of CVC4 and SMTcoq that these are being worked on. In the future, supports for more theories, especially quantified arrays and inductive datatypes, would permit for more direct encodings and, in the case of the latter, automatic generation of encoding together with correctness proof for the datatype and simple functions.
-
+In a more distant future, support for more theories, especially quantified arrays and inductive datatypes, would allow direct encodings and automatic generation of encoding together with correctness proof for the datatype and simple functions.
 
 % supporting more list operations and potentially other datatypes
 In the meantime, we can extend our encodings with more lists operations, potentially using \emph{AUFLIA} rather than its quantifier-free fragment \emph{QF\_AUFLIA}.
 
 \section{Conclusion}
 \label{sec:conclusion}
-Our project is meant to be taken as an investigation of the realizability of harnessing an SMT solver to provide automate software verification goals in an interactive theorem prover such as Coq. We conclude that while architecturally we know how to assemble an interface such as this one, the tools which are currently available are too limited for realistic usage.
+Our project is meant to be taken as an investigation of the realizability of harnessing the power of an SMT solver to provide automate software verification goals in an interactive theorem prover such as Coq. We conclude that while architecturally we know how to assemble an interface such as this one, the tools which are currently available are too limited for realistic usage.
 
 
 
