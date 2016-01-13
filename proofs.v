@@ -15,26 +15,18 @@ Axiom QFAX1 : forall A a i (e:A), select (store a i e) i = e.
 Axiom QFAX2 : forall A a i j (e:A), i <> j -> select (store a i e) j = select a j.  
 Axiom QFAX3 : forall A (a b: array A), (forall i, select a i = select b i) -> a = b.  
 
-(*This definition is "Backwards" so it generates ugly proofs. Maybe change?*)
-Fixpoint list_of_array' {A} i L (ar:array A) :=
-  match i with
-    |  0%nat => nil
-    | (S n)%nat => (select ar (L - i))::(list_of_array' n L ar)
-  end.
 
-Definition list_of_array1 {A} i (ar:array A) :=
-  list_of_array' i i ar.
 
-Fixpoint list_of_array'' {A} L (ar:array A) :=
+Fixpoint list_of_array' {A} L (ar:array A) :=
   match L with
     |  0%nat => nil
-    | (S n)%nat => (select ar n)::(list_of_array'' n ar)
+    | (S n)%nat => (select ar n)::(list_of_array' n ar)
   end.
 
 Definition list_of_array {A} L (ar:array A) :=
-  rev (list_of_array'' L ar).
+  rev (list_of_array' L ar).
 
-Lemma length_la'': forall A (ar:array A) L, length (list_of_array'' L ar) = L.
+Lemma length_la': forall A (ar:array A) L, length (list_of_array' L ar) = L.
       Proof. induction L.
              - reflexivity.
              - simpl; f_equal; assumption.
@@ -58,10 +50,10 @@ Proof.
   destruct (le_gt_dec 0 j) as [LE | GT].
   destruct (le_gt_dec L j) as [LE' | GT'].
   - rewrite H1; [| right; assumption]. rewrite nth_overflow; auto.
-    replace (rev (list_of_array'' L ar)) with (list_of_array L ar) by reflexivity.
+    replace (rev (list_of_array' L ar)) with (list_of_array L ar) by reflexivity.
     rewrite length_la; auto.
   - rewrite H0; auto.
-    rewrite rev_nth; rewrite length_la'';  simpl; auto.
+    rewrite rev_nth; rewrite length_la';  simpl; auto.
     clear - GT'.
     induction L.
     + contradict GT'; omega.
@@ -72,7 +64,7 @@ Proof.
         rewrite IHL; auto.
   - omega.
 Qed.
-Print nth_overflow.
+
 
 Fixpoint upd_nth {A:Type} (i:nat) (l:list A) (a:A): list A :=
   match (i, l) with
@@ -143,10 +135,10 @@ Proof.
       rewrite upd_nth_app1.
       f_equal; auto.
       f_equal. admit.
-      rewrite rev_length, length_la''.
+      rewrite rev_length, length_la'.
       destruct (i-L)%nat eqn:eq. contradict H; omega.
       simpl. destruct n; reflexivity.
-      rewrite rev_length, length_la''; assumption.
+      rewrite rev_length, length_la'; assumption.
 Qed.
 
 Theorem enc_upd_lt:
@@ -156,9 +148,9 @@ Theorem enc_upd_lt:
     list_of_array L ss' = upd_nth i (list_of_array L ss) a.
 Proof.
   intros. unfold list_of_array.
-  rewrite rev_upd_nth; [|rewrite length_la''; auto].
+  rewrite rev_upd_nth; [|rewrite length_la'; auto].
   f_equal.
-  rewrite length_la''.
+  rewrite length_la'.
   rewrite H0.
   induction L.
   reflexivity.
@@ -170,7 +162,7 @@ Proof.
   Theorem blah:
     forall A i ss (a: array A) j,
       (j <= i)%nat ->
-      list_of_array'' j (store ss i a) = list_of_array'' j ss.
+      list_of_array' j (store ss i a) = list_of_array' j ss.
   Proof.
     intros. induction j.
     reflexivity.
@@ -203,14 +195,13 @@ Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
                    (list_of_array L1 ss1) ++ (list_of_array L2 ss2)  = list_of_array (L1+L2) ss3.
 Proof.
   induction L2; intros.
-  - unfold list_of_array; simpl. rewrite app_nil_r. assert (list_of_array'' L1 ss1 = list_of_array'' L1 ss3). revert H. clear H0. revert ss1. revert ss3. induction L1; intros.
+  - unfold list_of_array; simpl. rewrite app_nil_r. assert (list_of_array' L1 ss1 = list_of_array' L1 ss3). revert H. clear H0. revert ss1. revert ss3. induction L1; intros.
     + auto.
     + simpl. unfold list_of_array in IHL1. rewrite IHL1 with (ss3 := ss3) . rewrite H. reflexivity. omega. intros. apply H. omega.
     + rewrite H1. rewrite plus_0_r. reflexivity.
   - unfold list_of_array. replace (L1 + S L2)%nat with (S L1 + L2)%nat by omega.  simpl.
     assert (select ss2 L2 =  select ss3 (L1+L2)). rewrite plus_comm. apply H0. omega.
-    assert (list_of_array L1 ss1 ++ list_of_array L2 ss2 =
-                                                                                                 list_of_array (L1 + L2) ss3). apply IHL2.
+    assert (list_of_array L1 ss1 ++ list_of_array L2 ss2 = list_of_array (L1 + L2) ss3). apply IHL2.
     + assumption.
     + intros. apply H0. omega.
     + unfold list_of_array in H2. rewrite <- H2.  rewrite H1. apply app_assoc.
