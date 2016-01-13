@@ -48,6 +48,14 @@ The tool often produces subgoals over well studied theories with partial or full
 
 This report is organized as follow: Section 2 provide backgrounds about the tools and theories used in this project. Section 3 provides an overview of the solution, concentrating on the design of the encoding for supported list operations. Section 4 sketches proof of soundness of the encoding. Finally, section 5 explores future works for our project and discuss of the different assumption made of tools used.
 
+\section{The Verified Software Toolchain}
+\label{sec:VST}
+
+The Verified Software Toolchain is a project developed at Princeton University\cite{VST}, which helps users verify, with machine-checked proofs, programs written in C with respect to their specifications written in Coq. The logic comes with an end-to-end proof assuring that the user verification proofs really hold in the machine-language program, running in the operating-system context. At the top level, \emph{VST} provides a separation logic to reason about pointer-manipulating programs and a \emph{Hoare logic} with full support for C control-flow and data-flow. 
+
+Each of those components comes with partial automation, helping the user reason about her programs. In particular, VST provides tactics to reason about the control-flow of a program. The tactics produce subgoals in the form of consequence rules. VST provides automation to discharge spatial subgoals (that is dealing with pointers, in the separation logic), but when the subgoals are pure (i.e. not spatial), the user must prove them by hand. Such pure theorems are often about data-structure manipulation, functions or linear arithmetic and could greatly benefit from automation.
+
+
 \section{Motivating Example: Swap}
 \label{sec:motiv}
 
@@ -155,58 +163,14 @@ TODO
 
 
 
-\section{Background}
-\label{sec:background}
-
-% VST
-\subsection{The Verified Software Toolchain}
-
-The Verified Software Toolchain is a project developed at Princeton University\cite{VST}, which helps users verify, with machine-checked proofs, programs written in C with respect to their specifications written in Coq. The logic comes with an end-to-end proof assuring that the user verification proofs really hold in the machine-language program, running in the operating-system context. At the top level, \emph{VST} provides a separation logic to reason about pointer-manipulating programs and a \emph{Hoare logic} with full support for C control-flow and data-flow. 
-
-Each of those components comes with partial automation, helping the user reason about her programs. In particular, VST provides tactics to reason about the control-flow of a program. The tactics produce subgoals in the form of consequence rules. VST provides automation to discharge spatial subgoals (that is dealing with pointers, in the separation logic), but when the subgoals are pure (i.e. not spatial), the user must prove them by hand. Such pure theorems are often about data-structure manipulation, functions or linear arithmetic and could greatly benefit from automation.
-
+\section{Surveying the state of related tools}
+\label{sec:survey}
 % SMTCOQ
 \subsection{SMT\_COQ}
 \emph{SMT\_COQ} is a certified SMT interface for the Coq interactive theorem prover developed by Dr. Chantal Keller. It is built around a simple SMT solver proven-correct in Coq.
 It works by encoding a Coq goal as an SMT formula, which may be proven valid by an external SMT solver. The SMT solver then generates a witness of the validity (for SAT, this witness would be the unsatisfiable core), which is validated by the simple SMT solver in Coq. Finally, the proof of correctness of this certified solver allows the reflection of the SMT decision in Coq, automatically solving the goal.
 
 \emph{SMT\_COQ} currently only support the theory of uninterpreted functions \emph{QF\_UF} and the theory of linear arithmetic \emph{QF\_LIA}, and interfaces with the outmoded SMT solver VeriT, but it is planned to support the theory of arrays \emph{QF\_AX} and interface with CVC4 \citep{CVC4}, a state-of-the-art SMT solver.
-
-% QF_AX, OF_AULIA and their support (and proof generation)
-\subsection{The SMT Theory of Arrays}
-The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \texttt{select} of type \texttt{array $\rightarrow$ int $\rightarrow$ el} and modified with function \texttt{store} of type \texttt{array $\rightarrow$ int $\rightarrow$ el $\rightarrow$ array}. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
-\begin{enumerate}
-\item selecting from the last store:
-  \begin{multicols}{2}
-    
-  $$ \forall a i, \textsf{select } (\textsf{store } a\ i\ e)\ i = e$$
-which states that selecting returns what was last stored at that location
- 
-\includegraphics[scale=0.5]{pictures/axiom1.png}
-
-  \end{multicols}
-  
-\item selecting from a previous store:
-  \begin{multicols}{2}
-  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a i$$
-  which means that storing an element has not effect on what can be selected at other indices.
-
-  \includegraphics[scale=0.5]{pictures/axiom2.png}
-  \end{multicols}
-  
-\item and extensionality:
-  
-  \begin{multicols}{2}
-  $$ \forall a b, (\forall i, \textsf{select } a\ i = \textsf{select } b\ i) \to a = b$$
-  which means that arrays which agrees on elements for every indices can be considered equal.
-
-  \includegraphics[scale=0.5]{pictures/axiom3.png}
-  \end{multicols}
-  \end{enumerate}
-  
-
-The theory of arrays can be augmented with uninterpreted functions and linear arithmetic (\emph{QF\_AUFLIA}) and to allow a limited form of quantification (\emph{AUFLIA})
-
 
 
 \section{Overview of our Solution}
@@ -261,6 +225,40 @@ Due to current limitation of SMTCoq, in CVC4 and to time constraint, the work de
 
 
 
+% QF_AX, OF_AULIA and their support (and proof generation)
+\subsection{The SMT Theory of Arrays}
+The extensional theory of arrays is an SMT theory to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \texttt{select} of type \texttt{array $\rightarrow$ int $\rightarrow$ el} and modified with function \texttt{store} of type \texttt{array $\rightarrow$ int $\rightarrow$ el $\rightarrow$ array}. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
+\begin{enumerate}
+\item selecting from the last store:
+  \begin{multicols}{2}
+    
+  $$ \forall a i, \textsf{select } (\textsf{store } a\ i\ e)\ i = e$$
+which states that selecting returns what was last stored at that location
+ 
+\includegraphics[scale=0.5]{pictures/axiom1.png}
+
+  \end{multicols}
+  
+\item selecting from a previous store:
+  \begin{multicols}{2}
+  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a i$$
+  which means that storing an element has not effect on what can be selected at other indices.
+
+  \includegraphics[scale=0.5]{pictures/axiom2.png}
+  \end{multicols}
+  
+\item and extensionality:
+  
+  \begin{multicols}{2}
+  $$ \forall a b, (\forall i, \textsf{select } a\ i = \textsf{select } b\ i) \to a = b$$
+  which means that arrays which agrees on elements for every indices can be considered equal.
+
+  \includegraphics[scale=0.5]{pictures/axiom3.png}
+  \end{multicols}
+  \end{enumerate}
+  
+
+The theory of arrays can be augmented with uninterpreted functions and linear arithmetic (\emph{QF\_AUFLIA}) and to allow a limited form of quantification (\emph{AUFLIA})
 
 
 
