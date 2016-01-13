@@ -303,7 +303,7 @@ which encodes the update operation and the fact that updating within boundaries 
 
 
 % encoding of append
-just like $\textsf{nthZ}$, $\textsf{append}$ is encoded using $\textsf{select}$. For every goal of the form $ls = ls_1 \doubleplus ls_2$, we add the following constraints:
+Just like $\textsf{nth}$, $\textsf{append}$ is encoded using $\textsf{select}$. For every goal of the form $ls = ls_1 \doubleplus ls_2$, we add the following constraints:
 \begin{align*}
 &(0 \leq j < \textsf{len}\ as1) \to \textsf{select}\ as1\ j = \textsf{select}\ as\ j\ \wedge \\
 &(\textsf{len}\ as1 \leq j < \textsf{len}\ as1 + \textsf{len}\ as2) \to \textsf{select}\ as2\ j = \textsf{select}\ as\ (\textsf{len}\ as1 + j)
@@ -348,15 +348,15 @@ Axiom QFAX3 : forall A (a b: array A),
 We then define a function which transport the arrays (on which something was proved using \emph{QF\_AX}) back to the lists manipulated by VST:
 
 \begin{lstlisting}
-  Fixpoint list_of_array'' {A} L (ar:array A) :=
+  Fixpoint list_of_array' {A} L (ar:array A) :=
   match L with
-    }  0 => nil
-    } S n => (select ar (L))::(list_of_array'' n ar)
+    |  0 => nil
+    | S n => (select ar (L))::(list_of_array' n ar)
   end.
 
 
 Definition list_of_array {A} i (ar:array A) :=
-   List.rev (list_of_array'' i ar).
+   List.rev (list_of_array' i ar).
 \end{lstlisting}
 
 
@@ -388,8 +388,8 @@ Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
 
 
 %% upd_nth as store
-\subsection{\texttt{upd\_nth}}
-We then prove that in-bound \texttt{store} encodes \texttt{upd\_nth} in theorem \texttt{enc\_upd}, stated as follow:
+\subsection{\texttt{upd}}
+We then prove that in-bound \texttt{store} encodes \texttt{upd} in theorem \texttt{enc\_upd}, stated as follow:
 
 \begin{align*}
   (\forall i, (0 \leq i < L) \to ss = \store{ss}{i}{a}) \to 
