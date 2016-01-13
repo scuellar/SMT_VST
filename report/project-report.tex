@@ -160,7 +160,6 @@ In this project, we will explore all of this steps with a particular emphasis on
 
 %While proving that the C code for swap respect this specification using VST, the following list-based side conditions are generated:
 
-TODO
 
 
 %All these conditions can be proven with simple but tedious proofs based solely on bounds reasoning and on the interaction between \texttt{Znth} and \texttt{upd_Znth}. In the remainder of this report, we will show how to automate these goals and more by using an automated theorem solver.
@@ -280,15 +279,14 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 \subsection{Encoding Lists as Arrays}
 
 % difference between list and QF_AX
-Since VST produces goals in
-In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
-\begin{lstlisting}
-inductive list A : Set :=
- | nil : list A
- | cons : A -> list A -> list A.
-\end{lstlisting}
+In VST, C arrays are reasoned about propositionally as list of their content, as seen in figure \ref{fig:hoarswap}. VST uses total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. So, programs dealing with arrays, VST produces goals about lists, such as \ref{eq:sub1} through \ref{eq:sub3}. To use \emph{AUFLIA} we must create a sound encoding to translate lists into arrays and back. 
 
-In VST, C arrays are reasoned about propositionally as list, using total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, using mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. 
+%In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type. 
+%\begin{lstlisting}
+%inductive list A : Set :=
+% | nil : list A
+% | cons : A -> list A -> list A.
+%\end{lstlisting}
 
 As seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
