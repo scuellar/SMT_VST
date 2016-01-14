@@ -311,7 +311,7 @@ The theory of arrays can be augmented with uninterpreted functions and linear ar
 \label{sec:encoding}
 
 % difference between list and QF_AX
-In VST, C arrays are reasoned about propositionally as list of their content, as seen in figure \ref{fig:hoarswap}. VST uses total operation such as \texttt{upd\_Znth} and \texttt{nthZ}, mathematical integers as index and a default value as argument to \texttt{nthZ} returned when accessing the array out of bound. So, verifying programs that deal with arrays produces goals about lists, such as \ref{eq:sub1} through \ref{eq:sub3}. To use \emph{AUFLIA} we must create a sound encoding to translate lists into arrays and back. 
+In VST, C arrays are reasoned about propositionally as list of their content, as seen in figure \ref{fig:hoarswap}. VST uses total operation such as \texttt{upd} and \texttt{nth}, mathematical integers as index and a default value as argument to \texttt{nth} returned when accessing the array out of bound. So, verifying programs that deal with arrays produces goals about lists, such as \ref{eq:sub1} through \ref{eq:sub3}. To use \emph{AUFLIA} we must create a sound encoding to translate lists into arrays and back. 
 
 In Coq, lists are an inductive datatype representing an ordered collection of finitely many elements of a given type.
 \begin{center}
@@ -324,7 +324,7 @@ inductive list A : Set :=
 On the other hand, as seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
 The basis of our encoding is that a \emph{QF\_AX} array \texttt{a} representing Coq list \texttt{l} will be constrained to contain the same elements as \texttt{l} from indices $0$ to $\mathsf{length}\ l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
-$$ a_i = \textsf{nthZ}\ l\ i\ d$$
+$$ a[i] = \textsf{nth}\ l\ i\ d$$
 
 Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the result of every list operation to a new variable. Then, each operation is encoded according a general, sound correspondence to operations in the theory of arrays:
 
@@ -357,7 +357,7 @@ Under this encoding, the result accessing the resulting array $as$ is equal to t
 
 Having presented our encoding of list operations in the theory of arrays, we now show the SMT query generated from encoding a goal from \texttt{swap}, the C program considered in section~\ref{sec:motiv}. 
 
-For the goal~\ref{eq:sub2}, which states that the $i$th element in the target array is equal to the $j$th element in the input if we assume that $i$ and $j$ are in bound, we would generate the following \emph{QF\_AUFLIA} query:
+For the goal~\ref{eq:sub1}, which states that the $i$th element in the target array is equal to the $j$th element in the input if we assume that $i$ and $j$ are in bound, we would generate the following \emph{QF\_AUFLIA} query:
 
 First, the hypothesis $0 \leq i < size$ and $0 \leq j < size$ and the default value \texttt{dI} used are directly encoded in \emph{QF\_LIA}
 \begin{lstlisting}
@@ -384,7 +384,7 @@ and the enclosing update to the $i$th element results in
      (=> (and (<= 0 i) (< i (len ls))) (= (len lspp) (len ls))))
 \end{lstlisting}
 
-We omit for brievity the other $\textsf{nth}$ and $\textsf{upd}$ being encoded.
+We omit for brievity the other $\textsf{nth}$ and $\textsf{upd}$ being encoded. The full encoding can be found in file \texttt{swap.smt2}.
 
 Finally, we add the negation of equality between the left side and the right side, such that if the whole conjunct is UNSAT, then the left side has to be equal to the right side.
 
@@ -432,7 +432,7 @@ Now that we can encode Coq list lemmas into array lemmas, we can directly feed t
 \section{Soundness of the Solution, or Reflecting Back on Lists}
 \label{sec:proofs}
 % explanation of proof needed for the big picture to work
-While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMTCoq} will soon interface with CVC4. The proof of correctness of \emph{SMTCoq} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in figure~\ref{fig:highlvl}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in figure~\ref{fig:highlvl}. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
+While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMTCoq} will soon interface with CVC4. The proof of correctness of \emph{SMTCoq} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in figure~\ref{fig:highlvl}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in figure~\ref{fig:highlvl}. We machine-checked the soundness of our encoding in Coq (file \textt{smt_test}) and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
 % say something about nat vs Z
 Also, to simplify the proofs, we have used natural numbers instead of integers (as used in VST), but we think the extension to integers should be straight forward.
 
