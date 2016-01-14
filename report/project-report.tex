@@ -25,7 +25,7 @@
 \title{COS 597B: Final Report\\
 \emph{Towards SMT in VST}}
 
-\authorinfo{Santiago Cuellar \and Olivier Savary B\'{e}langer}
+\authorinfo{Carmen Santiago \and Olivier Savary B\'{e}langer}
            {Princeton University}
            {scuellar/olivierb@princeton.edu}
 
@@ -404,7 +404,7 @@ Now that we can encode Coq list lemmas into array lemmas, we can directly feed t
 \section{Soundness of the Solution, or Reflecting Back on Lists}
 \label{sec:proofs}
 % explanation of proof needed for the big picture to work
-While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMT\_COQ} will soon interface with CVC4. The proof of correctness of \emph{SMT\_COQ} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used. Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
+While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMT\_COQ} will soon interface with CVC4. The proof of correctness of \emph{SMT\_COQ} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in section~\ref{sec:survey}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in section~\ref{sec:survey}. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
 % say something about nat vs Z
 Also, to simplify the proofs, we have used natural numbers instead of integers (as used in VST), but we think the extension to integers should be straight forward.
 
@@ -510,7 +510,7 @@ Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
 \end{lstlisting}
 \end{comment}
 
-TODO: Here we need to explain how those three theorems in fact say that the encoding is good.
+Together, these three theorems tell us that if the encoded goal (about arrays) is declared valid by the certified SMT solver in \emph{SMT\_COQ}, then the initial goal (about list) had to be valid; each array operation implies the list operation they encoded.
 
 %end
 \section{Future Work}
