@@ -14,50 +14,55 @@ encoding frst znth conclusion of body_swap in verif_swap
 
 (set-logic QF_AUFLIA)
 (declare-fun a () (Array Int Int))
-(declare-fun len_a () Int)
+
 (declare-fun i () Int)
 (declare-fun j () Int)
 (declare-fun size () Int)
-(declare-fun undef () Int)
+(declare-fun dI () Int)
 
+(declare-fun saj () Int)
+(declare-fun sai () Int)
+(declare-fun lspp () (Array Int Int))
+(declare-fun lsp () (Array Int Int))
+(declare-fun rs () Int)
+(declare-fun ls () Int)
+
+(declare-fun len_a () Int)
 (declare-fun len_lspp () Int)
 (declare-fun len_lsp () Int)
 
 
 
-(assert (not (= undef (select a j))))
 
-(assert (not (= undef (select a i))))
+(assert (not (= dI (select a j))))
+
+(assert (not (= dI (select a i))))
 
 (assert (let ((?id (select a j)))
-         (=> (not (= undef ?id)) (and (<= 0 j) (< j len_a)))))
+         (=> (not (= dI ?id)) (and (<= 0 j) (< j len_a)))))
 
 (assert (let ((?id0 (select a i)))
-         (=> (not (= undef ?id0)) (and (<= 0 i) (< i len_a)))))
+         (=> (not (= dI ?id0)) (and (<= 0 i) (< i len_a)))))
 	 
 (assert (and (<= 0 i) (< i size)))
 (assert (and (<= 0 j) (< j size)))
 
 
-
-
-
-(assert (let ((?saj  (select a j)))
-        (let ((?lspp (store a i ?saj))
-	      (?sai (select a i)))
-	 (let ((?lsp (store ?lspp j ?sai)))
-	   (let ((?ls (select ?lsp i))
-	         (?rs (select a j)))
-	   (and (=> (and (<= 0 i) (< i len_a)) (= len_lspp len_a))
-	   (and (=> (and (<= 0 j) (< j len_lspp)) (= len_lsp len_lspp))
-              (not 
-		    (and (= ?ls ?rs)
-		    (and (=> (not (= ?saj 0)) (and (<= 0 j) (< j len_a)))
-		    (and (=> (not (= ?saj 0)) (and (<= 0 i) (< i len_a)))
-		    (and (=> (not (= ?ls 0)) (and (<= 0 i) (< i len_lsp)))
-		    (and (=> (not (= ?rs 0)) (and (<= 0 j) (< j len_a)))
-		     (and (and (<= 0 i) (< i len_a))
-		     (and (<= 0 j) (< j len_lspp))))))))))))))))
+(assert
+      (and (and (=> (and (<= 0 j) (< j len_a)) (= saj (select a j)))
+      	        (=> (not (and (<= 0 j) (< j len_a))) (= saj dI)))
+      (and (= lspp (store a i saj))    
+      (and (=> (and (<= 0 i) (< i len_a)) (= len_lspp len_a))
+      (and (and (=> (and (<= 0 i) (< i len_a)) (= sai (select a i)))
+                (=> (not (and (<= 0 i) (< i len_a))) (= sai dI)))
+      (and (= lsp (store lspp j sai))
+      (and (=> (and (<= 0 j) (< j len_lspp)) (= len_lsp len_lspp))
+      (and (and (=> (and (<= 0 i) (< i len_lsp)) (= ls (select lsp i)))
+                (=> (not (and (<= 0 i) (< i len_lsp))) (= ls dI)))
+      (and (and (=> (and (<= 0 j) (< j len_a)) (= rs (select a j)))
+                (=> (not (and (<= 0 j) (< j len_a))) (= rs dI)))
+       (not (and (= ls rs))))))))))))
+       
 
 (check-sat)
 (exit)
