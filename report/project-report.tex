@@ -331,55 +331,66 @@ Having presented our encoding of list operations in the theory of arrays, we now
 
 For the goal~\ref{eq:sub2}, which states that the $i$th element in the target array is equal to the $j$th element in the input if we assume that $i$ and $j$ are in bound, we would generate the following \emph{QF\_AUFLIA} query:
 
-First, the hypothesis $0 \leq i < size$ and $0 \leq j < size$ are directly encoded as \emph{QF\_LIA}
+First, the hypothesis $0 \leq i < size$ and $0 \leq j < size$ and the default value used are directly encoded in \emph{QF\_LIA}
+\begin{lstlisting}
+(assert (let ((?id (select a j)))
+         (=> (not (= undef ?id)) (and (<= 0 j) (< j len_a)))))
+
+(assert (let ((?id0 (select a i)))
+         (=> (not (= undef ?id0)) (and (<= 0 i) (< i len_a)))))
+
+(assert (= dI 0)) 
+\end{lstlisting}
+
+Then, a variable is create for each of the subexpression, and we add a conjunct representing the encoding of the operation. For example, for the innermost $\nth{j}{content}{0}$ on the left side, we add
 
 \begin{lstlisting}
+ (and (=> (and (<= 0 j) (< j (len ls))) (= saj (select a j)))
+      (=> (not (and (<= 0 j) (< j (len ls)))) (= saj dI)))
+\end{lstlisting}
+
+and the enclosing update to the $i$th element results in
+
+\begin{lstlisting}
+(and (= lspp (store a i saj))
+     (=> (and (<= 0 i) (< i (len ls))) (= (len lspp) (len ls))))
+\end{lstlisting}
+
+We omit for brievity the other $\textsf{nth}$ and $\textsf{upd}$ being encoded.
+
+Finally, we add the negation of equality between the left side and the right side, such that if the whole conjunct is UNSAT, then the left side has to be equal to the right side.
+
+\begin{lstlisting}
+  (not (and (= ls rs))
+  \end{lstlisting}
+
+\begin{comment}
+
+(assert
+      (and (and (=> (and (<= 0 j) (< j (len ls))) (= saj (select a j)))
+	          (=> (not (and (<= 0 j) (< j (len ls)))) (= saj dI)))
+		  
+
+	(and (= lspp (store a i saj))
+	(and (=> (and (<= 0 i) (< i (len ls))) (= (len lspp) (len ls)))
+	
+	(and (and (=> (and (<= 0 i) (< i (len ls))) (= sai (select a i)))
+	          (=> (not (and (<= 0 i) (< i (len ls)))) (= sai dI)))
+		  
+	(and (= lsp (store lspp j sai))
+	(and (=> (and (<= 0 j) (< j (len lspp))) (= (len lsp) (len lspp)))
+	
+	(and (and (=> (and (<= 0 i) (< i (len lsp))) (= ls (select lsp i)))
+	          (=> (not (and (<= 0 i) (< i (len lsp)))) (= ls dI)))
+		  
+	(and (and (=> (and (<= 0 j) (< j (len ls))) (= rs (select a j)))
+	          (=> (not (and (<= 0 j) (< j (len ls)))) (= rs dI)))
+		  
+	(not (and (= ls rs))))))))))))	     
+	     
 (assert (and (<= 0 i) (< i size)))
-
 (assert (and (<= 0 j) (< j size)))
-\end{lstlisting}
-
-
-Then, each of the program operations is named and encoded as previously described. 
-\begin{lstlisting}
-(assert (let ((?saj  (select a j)))
-        (let ((?lspp (store a i ?saj))
-	      (?sai (select a i)))
-	 (let ((?lsp (store ?lspp j ?sai)))
-	   (let ((?ls (select ?lsp i))
-                (?rs (select a j)))
-  ...
-\end{lstlisting}
-
-Conjuncts are added to assert relation between \texttt{len} variables affected by \texttt{store}s.
-
-\begin{lstlisting}
-  ...
-	   (and (=> (and (<= 0 i) (< i len_a)) (= len_lspp len_a))
-           (and (=> (and (<= 0 j) (< j len_lspp)) (= len_lsp len_lspp))
-  ...
-\end{lstlisting}
-
-Conjuncts are added to assert relation between 
-\begin{lstlisting}
-  ...
-          (and (=> (not (= ?saj 0)) (and (<= 0 j) (< j len_a)))
-	  (and (=> (not (= ?saj 0)) (and (<= 0 i) (< i len_a)))
-          (and (=> (not (= ?ls 0)) (and (<= 0 i) (< i len_lsp)))
-          (and (=> (not (= ?rs 0)) (and (<= 0 j) (< j len_a)))
-  ...
-\end{lstlisting}
-
-
-Finally, a conjunct composed of the main equality and of in bound conclusion generated from 
-
-\begin{lstlisting}
-  ...
-              (not 
-		    (and (= ?ls ?rs)
-		     (and (and (<= 0 i) (< i len_a))
-		     (and (<= 0 j) (< j len_lspp))))))))))))))))
-\end{lstlisting}
+\end{comment}
 
 %
 %Hey Olivier, 
@@ -461,7 +472,7 @@ Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
 %% upd_nth as store
 
 \begin{theorem}[\texttt{enc\_upd}: Soundness of \unth]
-\begin{align*}
+  \begin{align*}
   & ss' = \store{ss}{i}{a} \to \\
   &  \loa{L}{ss'} = \unth{i}{\loa{L}{ss}}{a}
 \end{align*}
