@@ -432,7 +432,7 @@ Now that we can encode Coq list lemmas into array lemmas, we can directly feed t
 \section{Soundness of the Solution, or Reflecting Back on Lists}
 \label{sec:proofs}
 % explanation of proof needed for the big picture to work
-While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMTCoq} will soon interface with CVC4. The proof of correctness of \emph{SMTCoq} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in figure~\ref{fig:highlvl}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in figure~\ref{fig:highlvl}. We machine-checked the soundness of our encoding in Coq (file \textt{smt_test}) and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
+While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMTCoq} will soon interface with CVC4. The proof of correctness of \emph{SMTCoq} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in figure~\ref{fig:highlvl}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in figure~\ref{fig:highlvl}. We machine-checked the soundness of our encoding in Coq (file \texttt{proofs.v}) and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
 % say something about nat vs Z
 Also, to simplify the proofs, we have used natural numbers instead of integers (as used in VST), but we think the extension to integers should be straight forward.
 
@@ -461,13 +461,13 @@ $\forall A\ a\ i\ (e:A),  i\not = j \rightarrow$  select (store a i e) j = selec
 We then define a translation function from arrays (on which something was proved using \emph{QF\_AX}) back to the lists manipulated by VST:
 
 \begin{lstlisting}
-  Fixpoint list_of_array' {A} L (ar:array A) :=
+  Fixpoint list_of_array' {A} L (ar:array A): list A :=
     match L with
     |  0 => nil
     | S n => (select ar L)::(list_of_array' n ar)
     end.
 
-  Definition list_of_array {A} L (ar:array A) :=
+  Definition list_of_array {A} L (ar:array A): list A :=
     List.rev (list_of_array' L ar).
   
 \end{lstlisting}
@@ -514,7 +514,7 @@ Theorem enc_nth: forall A  L j (ar:array A) (ls:list A) (s:A)  (d:A),
 \end{align*}
 \end{theorem}
 
-The theorem says that storing into the array and then reflecting is equal to reflecting the array and then updating the list.
+The theorem says that storing into the array and then reflecting is equal to reflecting the array and then updating the resulting list.
 %The proof is based on two lemmas, \texttt{enc\_upd\_ge} and \texttt{enc\_upd\_le} depending on if the update is done within the list's bound or not. Each lemmas are proven by induction on L.
 
 \begin{comment}
