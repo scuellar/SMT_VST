@@ -39,6 +39,7 @@ Lemma length_la: forall A L (ar:array A), length (list_of_array L ar) = L.
              - simpl; f_equal; assumption.
       Qed.
 
+(* Soundness of encoding for nth *)      
 Theorem enc_nth: forall A  (L j:nat) (ar:array A) (ls:list A) (s:A)  (d:A),
                    ((0 <= j < L)%nat -> s = select ar j) /\
                     (( j < 0 \/ L <= j)%nat -> s = d) ->
@@ -189,6 +190,7 @@ Proof.
   }
   Qed.
 
+(* Soundness of encoding for upd *) 
 Theorem enc_upd:
   forall A i ss (a: array A) L ss',
     ss' = store ss i a ->
@@ -197,17 +199,17 @@ Proof.
   intros. destruct (le_gt_dec L i); [apply enc_upd_ge | apply enc_upd_lt]; auto.
 Qed.
 
-
+(* Soundness of encoding for app *)
 Theorem enc_app: forall  A L1 L2 (ss1 ss2 ss3: array A),
                    (forall i, (0 <= i < L1)%nat -> select  ss1 i = select  ss3 i) ->
                    (forall i, (0 <= i < L2)%nat -> select ss2 i = select ss3 (i + L1)) ->
                    (list_of_array L1 ss1) ++ (list_of_array L2 ss2)  = list_of_array (L1+L2) ss3.
 Proof.
   induction L2; intros.
-  - unfold list_of_array; simpl. rewrite app_nil_r. assert (list_of_array' L1 ss1 = list_of_array' L1 ss3). revert H. clear H0. revert ss1. revert ss3. induction L1; intros.
+  - unfold list_of_array; simpl. rewrite app_nil_r. replace (list_of_array' L1 ss1) with (list_of_array' L1 ss3).   rewrite plus_0_r.  reflexivity.
+    revert H. clear H0. revert ss1. revert ss3. induction L1; intros.
     + auto.
-    + simpl. unfold list_of_array in IHL1. rewrite IHL1 with (ss3 := ss3) . rewrite H. reflexivity. omega. intros. apply H. omega.
-    + rewrite H1. rewrite plus_0_r. reflexivity.
+    + simpl. rewrite IHL1 with (ss1 := ss1) . rewrite H. reflexivity. omega. intros. apply H. omega.
   - unfold list_of_array. replace (L1 + S L2)%nat with (S L1 + L2)%nat by omega.  simpl.
     assert (select ss2 L2 =  select ss3 (L1+L2)). rewrite plus_comm. apply H0. omega.
     assert (list_of_array L1 ss1 ++ list_of_array L2 ss2 = list_of_array (L1 + L2) ss3). apply IHL2.

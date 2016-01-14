@@ -1,11 +1,9 @@
 
 (set-info :source |
 
-encoding frst znth conclusion of body_swap in verif_swap 
+encoding first conclusion of body_swap in verif_swap 
 
  notes:
- - extracting  forall a i v, len a is equal to len store a i v explicitely (at every store)
- - We only reason about in-bound array stores. upd_znth generates store hypothesis, in-bound then length implication and in-bound in the goal
  - doesn't seem possible to encode len as function since it's domain is not a base type, using Ints instead 
 |)
 
