@@ -84,8 +84,8 @@ void swap(int a[], int i, int j){
   a[j] = t1;
 }
 \end{lstlisting}
-   \label{fig:swap}
-   \caption{The \texttt{swap}  C code}
+\caption{The \texttt{swap}  C code}
+\label{fig:swap}
 \end{figure}
 
 The function \texttt{swap}, included in figure \ref{fig:swap}, is a C function that takes an array \texttt{a} and two indices \texttt{i} and \texttt{j} as input. Assuming that both index are in bounds, the function exchanges the contents of \texttt{a} at indices \texttt{i} and \texttt{j}, leaving the rest of \texttt{a} unchanged. We write the specification for this function as a Hoare triple in VST in figure \ref{fig:hoarswap} and we discuss the important parts.
@@ -107,8 +107,8 @@ Definition swap_spec :=
    LOCAL()
    SEP (data_at sh (tarray tint size) (map Vint contents') a).
 \end{lstlisting}
+\caption{The specification of \texttt{swap} in VST}
 \label{fig:hoarswap}
-   \caption{The specification of \texttt{swap} in VST}
 \end{figure}
 Lines 4 through 7 represent the precondition starting with PRE. Line 5 requires the indices $i$ and $j$ to be in bound and the size of the array to be representable:
 $$ 0 \leq i < size \wedge 0 \leq j < size  \wedge 0 \leq size \leq Int.max\_signed $$
@@ -122,7 +122,7 @@ contents'[x] = \left\{\begin{array}{cc}contents[j] & x = i \\contents[i] & x = j
 %$$\{P\} c_1;c_2 \{S\}$$
 %and allows the user to step through the program, proving that every steps postcondition implies the next steps precondition. Finally, the user must prove that the resulting postcondition implies the postcondition of the specification. In the specific case of swap there are three final subgoals:
 
-When proving \texttt{swap} correct, with respect to specification \ref{fig:hoarswap}, the automation of VST discharges all spatial conditions and produces three subgoals that the user must prove 'by hand'. Those final subgoals, shown bellow, correspond to proving equation \ref{eq:condition}:
+When proving \texttt{swap} correct, with respect to specification \ref{fig:hoarswap}, the automation of VST discharges all spatial conditions and produces three subgoals that the user must prove by hand. Those final subgoals, shown bellow, correspond to proving equation \ref{eq:condition}:
 
 \begin{equation}
 \label{eq:sub1}
@@ -130,7 +130,7 @@ When proving \texttt{swap} correct, with respect to specification \ref{fig:hoars
 &0 \leq i < size \rightarrow &\\
 &0 \leq j < size \rightarrow &\\
 &\textsf{length } contents' = size \rightarrow &\\
-& \hspace{20pt} \nth i contents' \  0 = \nth j contents \ 0.
+& \hspace{20pt} \nth{i}{contents'}{0} = \nth{j}{contents}{0}.
 \end{aligned}
 \end{equation}
 
@@ -140,7 +140,7 @@ When proving \texttt{swap} correct, with respect to specification \ref{fig:hoars
 &0 \leq i < size \rightarrow &\\
 &0 \leq j < size \rightarrow &\\
 &\textsf{length } contents' = size \rightarrow &\\
-& \hspace{20pt} \nth j contents' \  0 = \nth i contents \ 0.
+& \hspace{20pt} \nth{j}{contents'}{0} = \nth{i}{contents}{0}.
 \end{aligned}
 \end{equation}
 
@@ -151,18 +151,18 @@ When proving \texttt{swap} correct, with respect to specification \ref{fig:hoars
 &0 \leq i < size \rightarrow &\\
 &0 \leq j < size \rightarrow &\\
 &\textsf{length } contents' = size \rightarrow &\\
-& \hspace{20pt} \nth k contents' \  0 = \nth k contents \ 0.
+& \hspace{20pt} \nth{k}{contents'}{0} = \nth{k}{contents}{0}.
 \end{aligned}
 \end{equation}
 
 Where $contents'$ is the content of the array $a$ after execution:
-$$contents' = (\unth j (\unth i contents (\nth j contents \  0)) (\nth i contents \  0)).$$
+$$contents' = (\unth j (\unth{i}{contents} (\nth{j}{contents}{0})) (\nth{i}{contents}{0})).$$
 The three subgoals require that $i$ and $j$ are within bounds, between 0 and the size of $contents'$. Subgoals \ref{eq:sub1} and \ref{eq:sub2} state that indices $i$ and $j$ are swaped.
 Subgoal \ref{eq:sub3} states that all other indices remain unchanged.
 
 \
 
-These kind of subgoals are not unique in any way. They are the kind of goals users see when verifying programs that read and write arrays, and these goals can be solved automatically by a modern SMT solver! Well, not immediately. As we will see, we need to properly encode the goals, to embed them into a know Modulo Theory. We also need to translate the the goal to an SMT friendly language, such as SMTlib. Then, we find an SMT solver that contains the desired theory. Finally, we must reflect back the resulting proof, by translating it into coq. All of these steps must be proven sound, such that the produced proof is in fact a proof of the original goal. % include the number of sections or references 
+These kind of subgoals are not unique in any way. They are the kind of goals users see when verifying programs manipulate arrays, and these goals can be solved automatically by a modern SMT solver! In order to do so, we will see, we need to properly encode the goals, to embed them into a know Modulo Theory. We also need to translate the the goal to an SMT friendly language, such as SMT-LIB. Then, we find an SMT solver that contains the desired theory. Finally, we must reflect back the resulting proof, by translating it into Coq. All of these steps must be proven sound, such that the produced proof is in fact a proof of the original goal. % include the number of sections or references 
 
 In this project, we will explore all of this steps with a particular emphasis on the initial encoding and the soundness of it.
 
@@ -185,7 +185,7 @@ In this project, we will explore all of this steps with a particular emphasis on
 % \subsection{A High-Level View of the Envisioned Machinery}
 In order to be able to use an SMT solver to prove Coq goal, Coq needs to trust the correctness of the decision taken by the SMT solver. To do so, an SMT solver must be developed and proven correct within Coq. However, state-of-the-art SMT solvers are notoriously complex and they perform many preprocessing steps and optimizations which would be difficult to prove correct. Meanwhile, a simple SMT solver would not scale to the large goals generated by VST. The consensus solution, adopted by \emph{SMT\_COQ} \citep{keller13} and used in \cite{appelnote}, consists of a simple SMT solver proven correct in Coq verifying proof witnesses generated by an untrusted, external SMT solver. 
 
-The following graphics describes the different components and the steps that goes into automatically proving an SMT goal. Doted line represents works done by external tools, where full lines are specific to this project.
+Figure~\ref{fig:highlvl} describes the different components and the steps that goes into automatically proving an SMT goal. Doted line represents works done by external tools, where full lines are specific to this project.
 
 \begin{figure}[ht]
 \begin{center}
@@ -323,7 +323,7 @@ inductive list A : Set :=
 \end{center}
 On the other hand, as seen in the previous section, the arrays manipulated in \emph{QF\_AX} are associative arrays rather than programmatic ones. They represent an infinite collection of key-value pair where the keys are mathematical integers. 
 
-The basis of our encoding is that the \emph{QF\_AX} array \texttt{a} representing Coq list \texttt{l} will be constrained to contain the same elements as \texttt{l} from indices $0$ to $\mathsf{length} l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
+The basis of our encoding is that a \emph{QF\_AX} array \texttt{a} representing Coq list \texttt{l} will be constrained to contain the same elements as \texttt{l} from indices $0$ to $\mathsf{length}\ l - 1$ and the default value $d$ otherwise.This means that it should always be the case that
 $$ a_i = \textsf{nthZ}\ l\ i\ d$$
 
 Given a goal about lists in VST, we first rewrite it in a three-address code fashion, binding the result of every list operation to a new variable. Then, each operation is encoded according a general, sound correspondence to operations in the theory of arrays:
@@ -359,13 +359,13 @@ Having presented our encoding of list operations in the theory of arrays, we now
 
 For the goal~\ref{eq:sub2}, which states that the $i$th element in the target array is equal to the $j$th element in the input if we assume that $i$ and $j$ are in bound, we would generate the following \emph{QF\_AUFLIA} query:
 
-First, the hypothesis $0 \leq i < size$ and $0 \leq j < size$ and the default value used are directly encoded in \emph{QF\_LIA}
+First, the hypothesis $0 \leq i < size$ and $0 \leq j < size$ and the default value \texttt{dI} used are directly encoded in \emph{QF\_LIA}
 \begin{lstlisting}
 (assert (let ((?id (select a j)))
-         (=> (not (= undef ?id)) (and (<= 0 j) (< j len_a)))))
+         (=> (not (= dI ?id)) (and (<= 0 j) (< j len_a)))))
 
 (assert (let ((?id0 (select a i)))
-         (=> (not (= undef ?id0)) (and (<= 0 i) (< i len_a)))))
+         (=> (not (= dI ?id0)) (and (<= 0 i) (< i len_a)))))
 
 (assert (= dI 0)) 
 \end{lstlisting}
@@ -438,7 +438,7 @@ Also, to simplify the proofs, we have used natural numbers instead of integers (
 
 % proof of soundness of encoding
 %% QF_AX as Array GDT + Axioms
-We encode the theory of arrays over an abstract datatype arrays.  
+We encode the theory of arrays in Coq over an abstract datatype \texttt{array}.  
  \newline
   \texttt{Variable array: forall \{A:Type\}, Type.} \newline
   \texttt{Variable select: forall {A}, array A -> nat -> A.} \newline
@@ -472,26 +472,28 @@ We then define a translation function from arrays (on which something was proved
   
 \end{lstlisting}
 
-\texttt{list\_of\_array'} recursivelly build a list by select the last 
+Function \texttt{list\_of\_array'} recursively builds a list by selecting the relevant elements in array from position $L-1$ all the way down to 0. Function \texttt{list\_of\_array} then reverses the list to recover the initial order.
 
 Finally we prove the soundness theorems for each of the functions \texttt{nth}, \texttt{upd} and $\doubleplus$:
 %% nth as select
 
 \begin{theorem}[\texttt{enc\_nth}: Soundness of \textsf{nth}]
-\begin{align*}
- & (\forall j, (j \leq 0 \vee L \leq j) \to \select{ar}{j} = d) \to \\
- & \select{ar}{j} = \nth{i}{(\loa{L}{ar})}{d} 
-\end{align*}
-\begin{comment} OLD version
-\begin{align*}
+
+  \begin{align*}
  & (\forall j, (0 \leq j < L) \to s = \select{ar}{j}) \to \\
  & (\forall j, (j \leq 0 \vee L \leq j) \to s = d) \to \\
  & s = \nth{i}{(\loa{L}{ar})}{d} 
 \end{align*}
+
+\begin{comment} OLD new version
+\begin{align*}
+ & (\forall j, (j \leq 0 \vee L \leq j) \to \select{ar}{j} = d) \to \\
+ & \select{ar}{j} = \nth{i}{(\loa{L}{ar})}{d} 
+\end{align*}
 \end{comment}
 \end{theorem}
 
-The theorem says that, as long as an array is constant (i.e. $d$) out of bounds, reading from the array is equal to reading from the reflected list. % I would add more about why this proofs soundness.
+The theorem says that reading from the reflected list is the same as reading from the array when in bound, and the constant $d$ otherwise. %, as long as an array is constant (i.e. $d$) out of bounds, reading from the array is equal to reading from the reflected list. % I would add more about why this proofs soundness.
 %The proof goes by induction on \codeinl{L}, with simple reasoning about the length of $\textsf{list\_of\_array}$ and on the behavior of function \textsf{nth} on overflow.
 
 \begin{comment}
@@ -550,7 +552,7 @@ Together, these three theorems tell us that if the encoded goal (about arrays) i
 \section{Future Work}
 \label{sec:future}
 % 4 pages just there
-In the near future, we expect most of the current limitations to our work due to external tools to be lifted. In order for the pipeline described in the previous sections to be completed, we need CVC4 to generate witnesses for the theory of arrays and SMTcoq to support the theory of arrays and to interface with CVC4. We have the confirmation from the developer of CVC4 and SMTcoq that these are being worked on. This will allow us to streamline the process to automatically discharge goals directly within VST. 
+In the near future, we expect most of the current limitations to our work due to external tools to be lifted. In order for the pipeline described in the previous sections to be completed, we need CVC4 to generate witnesses for the theory of arrays and SMTCoq to support the theory of arrays and to interface with CVC4. We have the confirmation from the developer of CVC4 and SMTCoq that these are being worked on. This will allow us to streamline the process to automatically discharge goals directly within VST. 
 
 In a more distant future, support for more theories, especially quantified arrays and inductive datatypes, would allow direct encodings and automatic generation of encoding together with correctness proof for the datatype and simple functions.
 
@@ -562,13 +564,13 @@ In the meantime we could automate our encodings, to translate from lists to arra
 Our project is meant to be taken as an investigation of the realizability of harnessing the power of an SMT solver to provide automate software verification goals in an interactive theorem prover such as Coq, particularly to solve side conditions of VST. We show a proof-of-concept pipeline to verify subgoals within VST with an SMT with the following steps:
 \begin{enumerate}
 \item \textbf{Encode} the subgoal about lists into a goal about arrays. This step is done manually and could be automated.
-\item \textbf{Translate} the goal about lists from Coq to SMTlib. This step is currently done manually, but will be done by SMTcoq in the near future. 
+\item \textbf{Translate} the goal about lists from Coq to SMT-LIB. This step is currently done manually, but will be done by SMTCoq in the near future. 
 \item \textbf{Verify} the goal with CVC4 or any SMT solver that supports arrays. 
-\item \textbf{Translate back} the witness into coq. CVC4 does not produce a witness but it will in a near future and SMTcoq should be able to do the sound translation.
+\item \textbf{Translate back} the witness into coq. CVC4 does not produce a witness but it will in a near future and SMTCoq should be able to do the sound translation.
 \item \textbf{Reflect} back the witness about arrays into a proof of the original goal about lists. this is currently done manually, but could be automated.
 \end{enumerate}
 We conclude that while architecturally we know how to assemble an interface such as this one, the tools which are currently available are too limited for realistic usage. We further show that while the tools get developed, there must be some work done to breach the limitations, such as using theories of arrays instead of that of data types. 
-We particularly stress the importance and recommend the support for the theory of inductive datatypes in CVC4, SMTlib and SMTcoq. Such development will profoundly advance the automation of side-conditions generated by VST.
+We particularly stress the importance and recommend the support for the theory of inductive datatypes in CVC4, SMT-LIB and SMTCoq. Such development will profoundly advance the automation of side-conditions generated by VST.
 
 \begin{comment}
 Even assuming \emph{SMT\_COQ}'s support for CVC4, and CVC4 proof generation for \emph{AUFLIA}, we doubt that our encoding of list goals as array will scale well to more list operations and goals about other inductive datatypes, and that it would be more practical than using the automation facilities already present in Coq. In a more distant future, we envision the support for the theory of inductive datatypes to be of high importance, as it would permit (and potentially generate automatically)  direct encoding of simple Coq datatypes, towards a seamless integration of SMT for VST.
