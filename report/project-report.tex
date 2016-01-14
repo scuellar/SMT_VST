@@ -49,7 +49,7 @@ The tool often produces subgoals over well studied theories with partial or full
  \item Proving the soundness of the above encoding (Sec.~\ref{sec:proofs})
 \end{itemize}
 
-This report is organized as follow: Section 2 provide backgrounds about the tools and theories used in this project. Section 3 provides an overview of the solution, concentrating on the design of the encoding for supported list operations. Section 4 sketches proof of soundness of the encoding. Finally, section 5 explores future works for our project and discuss of the different assumption made of tools used.
+The report is organized as follow: Sections~\ref{sec:VST} and~\ref{sec:survey} provide backgrounds about the tools and theories used in this project. Section~\ref{sec:solution} provides an overview of the solution, concentrating on the design of the encoding for supported list operations. Section~\ref{sec:proofs} sketches proof of soundness of the encoding. Finally, Sections~\ref{sec:future} and~\ref{sec:conclusion} explore future works for our project and discuss of the different assumption made of tools used.
 
 \section{The Verified Software Toolchain}
 \label{sec:VST}
@@ -247,31 +247,47 @@ Targeting \emph{QF\_AUFLIA} is a pragmatic choice. While the theory of inductive
 The extensional theory of arrays is an SMT to reason about integer-indexed, infinite collection of elements. Arrays are accessed using function \texttt{select} of type \texttt{array $\rightarrow$ int $\rightarrow$ el} and modified with function \texttt{store} of type \texttt{array $\rightarrow$ int $\rightarrow$ el $\rightarrow$ array}. The simplest fragment of this theory is \emph{QF\_AX}. This quantifier-free theory is based on three axioms:
 \begin{enumerate}
 \item selecting from the last store:
-  \begin{multicols}{2}
+
+  \begin{minipage}{.5\textwidth}
+%  \begin{multicols}{2}
     
   $$ \forall a\ i, \textsf{select } (\textsf{store } a\ i\ e)\ i = e$$
 which states that selecting returns what was last stored at that location
- 
+  \end{minipage}
+  \begin{minipage}{.5\textwidth}
+    \centering
 \includegraphics[scale=0.5]{pictures/axiom1.png}
-
-  \end{multicols}
+\end{minipage}
+%  \end{multicols}
   
 \item selecting from a previous store:
-  \begin{multicols}{2}
-  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a\ i$$
-  which means that storing an element has not effect on what can be selected at other indices.
 
+  \begin{minipage}{.5\textwidth}
+
+  $$ \forall a i j, i \neq j \to \textsf{select } (\textsf{store } a\ j\ e)\ i = \textsf{select } a\ i$$
+    which means that storing an element has not effect on what can be selected at other indices.
+    \end{minipage}
+  \begin{minipage}{.5\textwidth}
+  \centering
+  
   \includegraphics[scale=0.5]{pictures/axiom2.png}
-  \end{multicols}
+  \end{minipage}
+  %  \end{multicols}
   
 \item and extensionality:
-  
-  \begin{multicols}{2}
+
+
+  \begin{minipage}{.5\textwidth}
   $$ \forall a b, (\forall i, \textsf{select } a\ i = \textsf{select } b\ i) \to a = b$$
   which means that arrays which agrees on elements for every indices can be considered equal.
-
+    \end{minipage}
+  \begin{minipage}{.5\textwidth}
+\centering
+  
   \includegraphics[scale=0.5]{pictures/axiom3.png}
-  \end{multicols}
+    \end{minipage}
+
+
   \end{enumerate}
   
 
