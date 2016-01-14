@@ -21,6 +21,13 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{axiom}{Axiom}
 
+\usepackage{listings}
+\lstset{
+  basicstyle  = \small,
+  % basewidth = {.5em,0.5em},
+  % columns   = flexible,
+  % columns   = fullflexible,
+}
 
 \title{COS 597B: Final Report\\
 \emph{Towards SMT in VST}}
@@ -178,10 +185,13 @@ In order to be able to use an SMT solver to prove Coq goal, Coq needs to trust t
 
 The following graphics describes the different components and the steps that goes into automatically proving an SMT goal. Doted line represents works done by external tools, where full lines are specific to this project.
 
+\begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{pictures/arch.png}
 \end{center}
-
+\caption{A High-Level View of the Envisioned Machinery}
+\label{fig:highlvl}
+\end{figure}
 
 \begin{enumerate}
 \item %1
@@ -420,7 +430,7 @@ Now that we can encode Coq list lemmas into array lemmas, we can directly feed t
 \section{Soundness of the Solution, or Reflecting Back on Lists}
 \label{sec:proofs}
 % explanation of proof needed for the big picture to work
-While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMT\_COQ} will soon interface with CVC4. The proof of correctness of \emph{SMT\_COQ} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in section~\ref{sec:survey}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in section~\ref{sec:survey}. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
+While CVC4 does not yet produce witnesses for \emph{QF\_AX} or \emph{QF\_AUFLIA} we expect it to do so in the near future. Similarly, \emph{SMT\_COQ} will soon interface with CVC4. The proof of correctness of \emph{SMT\_COQ} will be sufficient to reflect the validity decision into a Coq theorem in a Coq representation of the SMT used (step 7 in figure~\ref{fig:highlvl}). Then, to use the witnesses back into Coq in the proofs of the original goal, we must show that our encoding from section \ref{sec:encoding} is sound, corresponding to step 8 in figure~\ref{fig:highlvl}. We machine-checked the soundness of our encoding in Coq and we briefly describe the theorems and proofs below. Completeness of the encoding is unknown at the time. 
 % say something about nat vs Z
 Also, to simplify the proofs, we have used natural numbers instead of integers (as used in VST), but we think the extension to integers should be straight forward.
 
@@ -449,12 +459,18 @@ $\forall A\ a\ i\ (e:A),  i\not = j \rightarrow$  select (store a i e) j = selec
 We then define a translation function from arrays (on which something was proved using \emph{QF\_AX}) back to the lists manipulated by VST:
 
 \begin{lstlisting}
-  Fixpoint list_of_array {A} L (ar:array A) :=
-  List.rev (match L with
-    		|  0 => nil
-    		| S n => (select ar (L))::(list_of_array' n ar)
-    		end).
+  Fixpoint list_of_array' {A} L (ar:array A) :=
+    match L with
+    |  0 => nil
+    | S n => (select ar L)::(list_of_array' n ar)
+    end.
+
+  Definition list_of_array {A} L (ar:array A) :=
+    List.rev (list_of_array' L ar).
+  
 \end{lstlisting}
+
+\texttt{list\_of\_array'} recursivelly build a list by select the last 
 
 Finally we prove the soundness theorems for each of the functions \texttt{nth}, \texttt{upd} and $\doubleplus$:
 %% nth as select
